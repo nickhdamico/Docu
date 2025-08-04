@@ -11,6 +11,18 @@ Roxom provides different base URLs for various environments and API types.
 
 <CodeGroup>
 ```http REST API
+https://api.roxom.com
+```
+
+```http WebSocket API
+wss://api.roxom.com/ws
+```
+</CodeGroup>
+
+### Sandbox Environment
+
+<CodeGroup>
+```http REST API
 https://api.roxom.io
 ```
 
@@ -19,12 +31,16 @@ wss://api.roxom.io/ws
 ```
 </CodeGroup>
 
+<Note>
+  Use the sandbox environment for testing and development. Sandbox API keys only work with sandbox endpoints.
+</Note>
+
 ### API Versioning
 
 All REST API endpoints are versioned. The current version is `v1` and is included in the URL path:
 
 ```http
-https://api.roxom.io/v1/{endpoint}
+https://api.roxom.com/v1/{endpoint}
 ```
 
 ## Regional Endpoints
@@ -33,13 +49,13 @@ Roxom operates in multiple regions to provide low-latency access. Choose the end
 
 | Region | REST API | WebSocket API |
 |--------|----------|---------------|
-| **US East** | `https://us-east-api.roxom.io` | `wss://us-east-api.roxom.io/ws` |
-| **US West** | `https://us-west-api.roxom.io` | `wss://us-west-api.roxom.io/ws` |
-| **Europe** | `https://eu-api.roxom.io` | `wss://eu-api.roxom.io/ws` |
-| **Asia Pacific** | `https://ap-api.roxom.io` | `wss://ap-api.roxom.io/ws` |
+| **US East** | `https://us-east-api.roxom.com` | `wss://us-east-api.roxom.com/ws` |
+| **US West** | `https://us-west-api.roxom.com` | `wss://us-west-api.roxom.com/ws` |
+| **Europe** | `https://eu-api.roxom.com` | `wss://eu-api.roxom.com/ws` |
+| **Asia Pacific** | `https://ap-api.roxom.com` | `wss://ap-api.roxom.com/ws` |
 
 <Note>
-  Use the global endpoint `https://api.roxom.io` if you're unsure which region to choose. The global endpoint automatically routes requests to the optimal region.
+  Use the global endpoint `https://api.roxom.com` if you're unsure which region to choose. The global endpoint automatically routes requests to the optimal region.
 </Note>
 
 ## SSL/TLS Requirements
@@ -56,12 +72,12 @@ For enhanced security, you may implement certificate pinning. Contact [support@r
 
 ```bash
 # Production
+ROXOM_API_BASE_URL=https://api.roxom.com
+ROXOM_WS_BASE_URL=wss://api.roxom.com/ws
+
+# Sandbox
 ROXOM_API_BASE_URL=https://api.roxom.io
 ROXOM_WS_BASE_URL=wss://api.roxom.io/ws
-
-# Regional (US East)
-ROXOM_API_BASE_URL=https://us-east-api.roxom.io
-ROXOM_WS_BASE_URL=wss://us-east-api.roxom.io/ws
 ```
 
 ### Python Configuration
@@ -70,8 +86,8 @@ ROXOM_WS_BASE_URL=wss://us-east-api.roxom.io/ws
 import os
 
 class RoxomConfig:
-    BASE_URL = os.getenv('ROXOM_API_BASE_URL', 'https://api.roxom.io')
-    WS_URL = os.getenv('ROXOM_WS_BASE_URL', 'wss://api.roxom.io/ws')
+    BASE_URL = os.getenv('ROXOM_API_BASE_URL', 'https://api.roxom.com')
+    WS_URL = os.getenv('ROXOM_WS_BASE_URL', 'wss://api.roxom.com/ws')
     API_VERSION = 'v1'
     
     @property
@@ -83,8 +99,8 @@ class RoxomConfig:
 
 ```javascript
 const config = {
-  baseUrl: process.env.ROXOM_API_BASE_URL || 'https://api.roxom.io',
-  wsUrl: process.env.ROXOM_WS_BASE_URL || 'wss://api.roxom.io/ws',
+  baseUrl: process.env.ROXOM_API_BASE_URL || 'https://api.roxom.com',
+  wsUrl: process.env.ROXOM_WS_BASE_URL || 'wss://api.roxom.com/ws',
   apiVersion: 'v1',
   
   get restEndpoint() {
@@ -98,7 +114,7 @@ const config = {
 Before integrating, verify that the API is accessible:
 
 ```bash
-curl -X GET "https://api.roxom.io/health" \
+curl -X GET "https://api.roxom.com/health" \
   -H "Content-Type: application/json"
 ```
 

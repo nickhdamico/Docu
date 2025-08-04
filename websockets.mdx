@@ -9,7 +9,7 @@ The Roxom WebSocket API provides real-time streaming data for market information
 
 ### Connection URL
 ```
-wss://api.roxom.io/ws
+wss://api.roxom.com/ws
 ```
 
 ## Authentication
@@ -44,7 +44,7 @@ WebSocket connections require authentication for private data streams. Authentic
 
 <CodeGroup>
 ```javascript JavaScript
-const ws = new WebSocket('wss://api.roxom.io/ws');
+const ws = new WebSocket('wss://api.roxom.com/ws');
 
 ws.onopen = function() {
   console.log('Connected to Roxom WebSocket');
@@ -102,7 +102,7 @@ def on_open(ws):
     ws.send(json.dumps(auth_message))
 
 ws = websocket.WebSocketApp(
-    "wss://api.roxom.io/ws",
+    "wss://api.roxom.com/ws",
     on_open=on_open,
     on_message=on_message,
     on_error=on_error,
@@ -130,7 +130,7 @@ type AuthMessage struct {
 }
 
 func main() {
-    c, _, err := websocket.DefaultDialer.Dial("wss://api.roxom.io/ws", nil)
+    c, _, err := websocket.DefaultDialer.Dial("wss://api.roxom.com/ws", nil)
     if err != nil {
         log.Fatal("dial:", err)
     }

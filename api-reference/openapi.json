@@ -14,11 +14,11 @@
   },
   "servers": [
     {
-      "url": "https://api.roxom.io/v1",
+      "url": "https://api.roxom.com/v1",
       "description": "Production API"
     },
     {
-      "url": "https://sandbox-api.roxom.io/v1", 
+      "url": "https://api.roxom.io/v1", 
       "description": "Sandbox API for testing"
     }
   ],

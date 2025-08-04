@@ -71,7 +71,7 @@ POST /v1/orders
 
 <RequestExample>
 ```bash Market Order
-curl -X POST "https://api.roxom.io/v1/orders" \
+curl -X POST "https://api.roxom.com/v1/orders" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,7 +83,7 @@ curl -X POST "https://api.roxom.io/v1/orders" \
 ```
 
 ```bash Limit Order
-curl -X POST "https://api.roxom.io/v1/orders" \
+curl -X POST "https://api.roxom.com/v1/orders" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -113,7 +113,7 @@ order_data = {
 }
 
 response = requests.post(
-    'https://api.roxom.io/v1/orders',
+    'https://api.roxom.com/v1/orders',
     headers=headers,
     json=order_data
 )

@@ -18,20 +18,20 @@ GET /health
 
 <CodeGroup>
 ```bash cURL
-curl -X GET "https://api.roxom.io/health" \
+curl -X GET "https://api.roxom.com/health" \
   -H "Content-Type: application/json"
 ```
 
 ```python Python
 import requests
 
-response = requests.get('https://api.roxom.io/health')
+response = requests.get('https://api.roxom.com/health')
 health_data = response.json()
 print(f"Status: {health_data['status']}")
 ```
 
 ```javascript JavaScript
-fetch('https://api.roxom.io/health')
+fetch('https://api.roxom.com/health')
   .then(response => response.json())
   .then(data => console.log('Status:', data.status));
 ```
@@ -64,7 +64,7 @@ GET /health/detailed
 ### Example Request
 
 ```bash
-curl -X GET "https://api.roxom.io/health/detailed" \
+curl -X GET "https://api.roxom.com/health/detailed" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -148,7 +148,7 @@ def monitor_roxom_health():
     
     try:
         response = requests.get(
-            'https://api.roxom.io/health/detailed',
+            'https://api.roxom.com/health/detailed',
             headers={'Authorization': 'Bearer YOUR_API_KEY'},
             timeout=10
         )
@@ -194,7 +194,7 @@ Set up automated monitoring using services like:
     
     1. Check your network connectivity
     2. Verify you're using the correct regional endpoint
-    3. Try the global endpoint: `https://api.roxom.io`
+    3. Try the global endpoint: `https://api.roxom.com`
     4. Contact support if issues persist
   </Accordion>
 

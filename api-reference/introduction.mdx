@@ -9,7 +9,7 @@ The Roxom REST API provides programmatic access to all trading functionality inc
 
 ### Base URL
 ```
-https://api.roxom.io/v1
+https://api.roxom.com/v1
 ```
 
 ### API Characteristics
@@ -24,7 +24,7 @@ https://api.roxom.io/v1
 All API endpoints require authentication using Bearer tokens in the Authorization header.
 
 ```bash
-curl -X GET "https://api.roxom.io/v1/account" \
+curl -X GET "https://api.roxom.com/v1/account" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -159,12 +159,12 @@ GET /v1/orders?limit=50&cursor=eyJ0aW1lc3RhbXAiOiIyMDI0LTAxLTE1VDEwOjMwOjAwWiJ9
 Use the following test credentials for development:
 
 <Warning>
-  Test API keys only work with sandbox endpoints: `https://sandbox-api.roxom.io`
+  Test API keys only work with sandbox endpoints: `https://api.roxom.io`
 </Warning>
 
 ```bash
 # Test API call
-curl -X GET "https://sandbox-api.roxom.io/v1/health" \
+curl -X GET "https://api.roxom.io/v1/health" \
   -H "Authorization: Bearer test_key_12345" \
   -H "Content-Type: application/json"
 ```
