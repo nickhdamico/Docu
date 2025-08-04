@@ -36,21 +36,18 @@
       ]
     }
   ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "API Portal",
-          "href": "https://api.roxom.io",
-          "icon": "terminal"
-        },
-        {
-          "anchor": "Support",
-          "href": "mailto:support@roxom.io",
-          "icon": "question-circle"
-        }
-      ]
+  "anchors": [
+    {
+      "anchor": "API Portal",
+      "href": "https://api.roxom.io",
+      "icon": "terminal"
+    },
+    {
+      "anchor": "Support",
+      "href": "mailto:support@roxom.io",
+      "icon": "question-circle"
     }
-  },
+  ],
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
