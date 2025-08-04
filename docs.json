@@ -11,29 +11,67 @@
   "navigation": {
     "groups": [
       {
+        "group": "Overview",
+        "pages": [
+          "index"
+        ]
+      },
+      {
         "group": "Getting Started",
         "pages": [
-          "index",
-          "decimal-format",
           "authentication",
           "base-urls",
+          "decimal-format",
           "health"
         ]
       },
       {
         "group": "REST API",
         "pages": [
-          "api-reference/introduction",
-          "api-reference/market-data",
-          "api-reference/orders",
-          "api-reference/account",
-          "api-reference/positions"
+          "api-reference/introduction"
+        ]
+      },
+      {
+        "group": "Market Data",
+        "pages": [
+          "api-reference/market-data/prices",
+          "api-reference/market-data/orderbook",
+          "api-reference/market-data/statistics",
+          "api-reference/market-data/historical",
+          "api-reference/market-data/symbols"
+        ]
+      },
+      {
+        "group": "Order Management",
+        "pages": [
+          "api-reference/orders/create",
+          "api-reference/orders/status",
+          "api-reference/orders/list",
+          "api-reference/orders/cancel",
+          "api-reference/orders/types"
+        ]
+      },
+      {
+        "group": "Account & Portfolio",
+        "pages": [
+          "api-reference/account/info",
+          "api-reference/account/balances",
+          "api-reference/account/leverage"
+        ]
+      },
+      {
+        "group": "Positions",
+        "pages": [
+          "api-reference/positions/list"
         ]
       },
       {
         "group": "WebSocket API",
         "pages": [
-          "websockets"
+          "websockets/overview",
+          "websockets/market-data",
+          "websockets/account-updates",
+          "websockets/connection"
         ]
       }
     ]

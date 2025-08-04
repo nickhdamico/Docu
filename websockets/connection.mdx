@@ -1,0 +1,552 @@
+---
+title: "WebSocket Connection"
+description: "Establish and maintain reliable WebSocket connections"
+---
+
+## Establishing Connection
+
+### Basic Connection
+
+Connect to the Roxom WebSocket API using standard WebSocket protocols:
+
+<CodeGroup>
+```javascript JavaScript
+const ws = new WebSocket('wss://ws.roxom.com/ws');
+
+ws.onopen = function(event) {
+  console.log('Connected to Roxom WebSocket API');
+};
+
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+
+ws.onclose = function(event) {
+  console.log('Connection closed:', event.code, event.reason);
+};
+
+ws.onerror = function(error) {
+  console.error('WebSocket error:', error);
+};
+```
+
+```python Python
+import websocket
+import json
+
+def on_message(ws, message):
+    data = json.loads(message)
+    print("Received:", data)
+
+def on_error(ws, error):
+    print("Error:", error)
+
+def on_close(ws, close_status_code, close_msg):
+    print("Connection closed")
+
+def on_open(ws):
+    print("Connected to Roxom WebSocket API")
+
+ws = websocket.WebSocketApp("wss://api.roxom.com/ws",
+                          on_open=on_open,
+                          on_message=on_message,
+                          on_error=on_error,
+                          on_close=on_close)
+
+ws.run_forever()
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "log"
+    "github.com/gorilla/websocket"
+)
+
+func main() {
+    c, _, err := websocket.DefaultDialer.Dial("wss://api.roxom.com/ws", nil)
+    if err != nil {
+        log.Fatal("dial:", err)
+    }
+    defer c.Close()
+
+    for {
+        _, message, err := c.ReadMessage()
+        if err != nil {
+            log.Println("read:", err)
+            return
+        }
+        fmt.Printf("received: %s\n", message)
+    }
+}
+```
+</CodeGroup>
+
+### Authenticated Connection
+
+For private account data, include authentication headers:
+
+<CodeGroup>
+```javascript JavaScript
+const timestamp = Date.now().toString();
+const signature = generateHMACSignature(apiSecret, timestamp);
+
+const headers = {
+  'X-API-KEY': 'your-api-key',
+  'X-API-TIMESTAMP': timestamp,
+  'X-API-SIGN': signature
+};
+
+const ws = new WebSocket('wss://ws.roxom.com/ws', [], { headers });
+```
+
+```python Python
+import websocket
+
+timestamp = str(int(time.time() * 1000))
+signature = generate_hmac_signature(api_secret, timestamp)
+
+headers = {
+    'X-API-KEY': 'your-api-key',
+    'X-API-TIMESTAMP': timestamp,
+    'X-API-SIGN': signature
+}
+
+ws = websocket.WebSocketApp("wss://ws.roxom.com/ws",
+                          header=headers,
+                          on_open=on_open,
+                          on_message=on_message,
+                          on_error=on_error,
+                          on_close=on_close)
+```
+
+```curl cURL
+wscat -c wss://ws.roxom.com/ws \
+  --header "X-API-KEY: your-api-key" \
+  --header "X-API-TIMESTAMP: $(date +%s000)" \
+  --header "X-API-SIGN: generated-hmac-signature"
+```
+</CodeGroup>
+
+### HMAC Signature Generation
+
+The `X-API-SIGN` header must contain an HMAC-SHA256 signature of the timestamp:
+
+<CodeGroup>
+```javascript JavaScript
+function generateHMACSignature(secret, timestamp) {
+  const crypto = require('crypto');
+  return crypto
+    .createHmac('sha256', secret)
+    .update(timestamp)
+    .digest('base64');
+}
+```
+
+```python Python
+import hmac
+import hashlib
+import base64
+
+def generate_hmac_signature(secret, timestamp):
+    signature = hmac.new(
+        secret.encode('utf-8'),
+        timestamp.encode('utf-8'),
+        hashlib.sha256
+    ).digest()
+    return base64.b64encode(signature).decode('utf-8')
+```
+
+```go Go
+import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/base64"
+)
+
+func generateHMACSignature(secret, timestamp string) string {
+    h := hmac.New(sha256.New, []byte(secret))
+    h.Write([]byte(timestamp))
+    return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+```
+</CodeGroup>
+
+## Connection Management
+
+### Heartbeat and Keep-Alive
+
+Implement heartbeat mechanism to maintain connection:
+
+```javascript
+class RoxomWebSocket {
+  constructor(url, options = {}) {
+    this.url = url;
+    this.options = options;
+    this.ws = null;
+    this.pingInterval = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+  }
+
+  connect() {
+    this.ws = new WebSocket(this.url, [], this.options);
+    
+    this.ws.onopen = () => {
+      console.log('Connected to Roxom WebSocket');
+      this.reconnectAttempts = 0;
+      this.startHeartbeat();
+    };
+
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      this.handleMessage(data);
+    };
+
+    this.ws.onclose = () => {
+      console.log('Connection closed');
+      this.stopHeartbeat();
+      this.reconnect();
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }
+
+  startHeartbeat() {
+    this.pingInterval = setInterval(() => {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.ping();
+      }
+    }, 30000); // 30 seconds
+  }
+
+  stopHeartbeat() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+  }
+
+  reconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      const delay = Math.pow(2, this.reconnectAttempts) * 1000; // Exponential backoff
+      
+      console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      
+      setTimeout(() => {
+        this.connect();
+      }, delay);
+    } else {
+      console.error('Max reconnection attempts reached');
+    }
+  }
+
+  handleMessage(data) {
+    // Handle incoming messages
+    console.log('Received:', data);
+  }
+
+  subscribe(channel, symbol) {
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        op: 'subscribe',
+        args: [{ channel, symbol }]
+      }));
+    }
+  }
+
+  disconnect() {
+    this.stopHeartbeat();
+    if (this.ws) {
+      this.ws.close();
+    }
+  }
+}
+
+// Usage
+const client = new RoxomWebSocket('wss://api.roxom.com/ws', {
+  headers: {
+    'X-API-KEY': 'your-api-key',
+    'X-API-TIMESTAMP': Date.now().toString()
+  }
+});
+
+client.connect();
+```
+
+### Reconnection Strategy
+
+Implement robust reconnection with exponential backoff:
+
+```python
+import websocket
+import time
+import threading
+import json
+
+class RoxomWebSocketClient:
+    def __init__(self, url, api_key=None):
+        self.url = url
+        self.api_key = api_key
+        self.ws = None
+        self.reconnect_attempts = 0
+        self.max_reconnect_attempts = 5
+        self.heartbeat_timer = None
+        
+    def connect(self):
+        headers = {}
+        if self.api_key:
+            headers = {
+                'X-API-KEY': self.api_key,
+                'X-API-TIMESTAMP': str(int(time.time() * 1000))
+            }
+            
+        self.ws = websocket.WebSocketApp(
+            self.url,
+            header=headers,
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close
+        )
+        
+        self.ws.run_forever(ping_interval=30, ping_timeout=10)
+    
+    def on_open(self, ws):
+        print("Connected to Roxom WebSocket")
+        self.reconnect_attempts = 0
+        
+    def on_message(self, ws, message):
+        data = json.loads(message)
+        self.handle_message(data)
+        
+    def on_error(self, ws, error):
+        print(f"WebSocket error: {error}")
+        
+    def on_close(self, ws, close_status_code, close_msg):
+        print("Connection closed")
+        self.reconnect()
+        
+    def reconnect(self):
+        if self.reconnect_attempts < self.max_reconnect_attempts:
+            self.reconnect_attempts += 1
+            delay = 2 ** self.reconnect_attempts  # Exponential backoff
+            
+            print(f"Reconnecting in {delay} seconds (attempt {self.reconnect_attempts})")
+            time.sleep(delay)
+            self.connect()
+        else:
+            print("Max reconnection attempts reached")
+            
+    def handle_message(self, data):
+        print(f"Received: {data}")
+        
+    def subscribe(self, channel, symbol):
+        if self.ws and self.ws.sock and self.ws.sock.connected:
+            message = {
+                'op': 'subscribe',
+                'args': [{'channel': channel, 'symbol': symbol}]
+            }
+            self.ws.send(json.dumps(message))
+
+# Usage
+client = RoxomWebSocketClient('wss://api.roxom.com/ws', 'your-api-key')
+client.connect()
+```
+
+## Environment Configuration
+
+### Production vs Sandbox
+
+<CodeGroup>
+```javascript Production
+const PRODUCTION_WS_URL = 'wss://api.roxom.com/ws';
+
+const prodClient = new WebSocket(PRODUCTION_WS_URL, [], {
+  headers: {
+    'X-API-KEY': process.env.ROXOM_PROD_API_KEY,
+    'X-API-TIMESTAMP': Date.now().toString()
+  }
+});
+```
+
+```javascript Sandbox
+const SANDBOX_WS_URL = 'wss://api.roxom.io/ws';
+
+const sandboxClient = new WebSocket(SANDBOX_WS_URL, [], {
+  headers: {
+    'X-API-KEY': process.env.ROXOM_SANDBOX_API_KEY,
+    'X-API-TIMESTAMP': Date.now().toString()
+  }
+});
+```
+</CodeGroup>
+
+### Environment Variables
+
+Set up environment-specific configuration:
+
+```bash
+# Production
+ROXOM_ENV=production
+ROXOM_WS_URL=wss://api.roxom.com/ws
+ROXOM_API_KEY=your_production_api_key
+
+# Sandbox  
+ROXOM_ENV=sandbox
+ROXOM_WS_URL=wss://api.roxom.io/ws
+ROXOM_API_KEY=your_sandbox_api_key
+```
+
+## Connection States
+
+Monitor connection states for better error handling:
+
+```javascript
+const CONNECTION_STATES = {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSING: 2,
+  CLOSED: 3
+};
+
+function getConnectionState(ws) {
+  switch (ws.readyState) {
+    case WebSocket.CONNECTING:
+      return 'CONNECTING';
+    case WebSocket.OPEN:
+      return 'OPEN';
+    case WebSocket.CLOSING:
+      return 'CLOSING';
+    case WebSocket.CLOSED:
+      return 'CLOSED';
+    default:
+      return 'UNKNOWN';
+  }
+}
+
+// Monitor connection state
+setInterval(() => {
+  if (ws) {
+    console.log(`Connection state: ${getConnectionState(ws)}`);
+  }
+}, 5000);
+```
+
+## Error Handling
+
+### Common Connection Errors
+
+<AccordionGroup>
+  <Accordion title="Authentication Failed (600010)">
+    **Cause**: Invalid API key or timestamp
+    
+    **Solution**: 
+    - Verify API key is correct
+    - Ensure timestamp is current (within 30 seconds)
+    - Check API key permissions
+    
+    ```json
+    {
+      "event": "error",
+      "code": "600010", 
+      "msg": "Authentication failed",
+      "connId": "01234567-89ab-7def-8123-456789abcdef"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Network Timeout">
+    **Cause**: Network connectivity issues
+    
+    **Solution**:
+    - Implement reconnection logic
+    - Use exponential backoff
+    - Monitor network status
+    
+    ```javascript
+    ws.onerror = function(error) {
+      if (error.type === 'timeout') {
+        console.log('Connection timeout, reconnecting...');
+        reconnect();
+      }
+    };
+    ```
+  </Accordion>
+
+  <Accordion title="Rate Limit Exceeded">
+    **Cause**: Too many connection attempts
+    
+    **Solution**:
+    - Implement connection pooling
+    - Use single connection when possible
+    - Add delays between reconnection attempts
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Connection Pooling">
+    - Use a single WebSocket connection per application
+    - Avoid creating multiple connections unnecessarily
+    - Share connections across different parts of your application
+  </Accordion>
+
+  <Accordion title="Resource Management">
+    - Always close connections when shutting down
+    - Clear intervals and timeouts properly
+    - Handle memory leaks from event listeners
+    
+    ```javascript
+    process.on('SIGINT', () => {
+      console.log('Shutting down gracefully...');
+      client.disconnect();
+      process.exit(0);
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Monitoring and Logging">
+    - Log connection events for debugging
+    - Monitor connection health metrics
+    - Track reconnection patterns
+    
+    ```javascript
+    const connectionMetrics = {
+      connects: 0,
+      disconnects: 0,
+      errors: 0,
+      messagesReceived: 0
+    };
+    
+    ws.onopen = () => {
+      connectionMetrics.connects++;
+      console.log('Connection metrics:', connectionMetrics);
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card
+    title="Market Data Streams"
+    icon="chart-line"
+    href="/websockets/market-data"
+  >
+    Subscribe to real-time market data
+  </Card>
+  <Card
+    title="Account Updates"
+    icon="user"
+    href="/websockets/account-updates"
+  >
+    Receive real-time account notifications
+  </Card>
+</CardGroup>

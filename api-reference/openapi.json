@@ -1,255 +1,104 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
     "title": "Roxom Trading API",
-    "description": "Complete API reference for the Roxom trading platform, providing access to market data, order management, account information, and real-time trading functionality.",
+    "description": "Real-time trading APIs for orders and account management",
+    "version": "1.0.0",
     "contact": {
       "name": "Roxom Support",
       "email": "support@roxom.io"
     },
     "license": {
       "name": "Proprietary"
-    },
-    "version": "1.0.0"
+    }
   },
   "servers": [
     {
-      "url": "https://api.roxom.com/v1",
+      "url": "https://api.roxom.com/api/v1",
       "description": "Production API"
     },
     {
-      "url": "https://api.roxom.io/v1", 
+      "url": "https://api.roxom.io/api/v1",
       "description": "Sandbox API for testing"
     }
   ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
-    "/account": {
-      "get": {
-        "summary": "Get Account Information",
-        "description": "Retrieve general account information and status",
-        "tags": ["Account"],
-        "responses": {
-          "200": {
-            "description": "Account information",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/account/balances": {
-      "get": {
-        "summary": "Get Account Balances",
-        "description": "Retrieve current balances for all assets",
-        "tags": ["Account"],
-        "parameters": [
-          {
-            "name": "asset",
-            "in": "query",
-            "description": "Filter by specific asset",
-            "schema": {
-              "type": "string",
-              "example": "BTC"
-            }
-          },
-          {
-            "name": "non_zero_only",
-            "in": "query",
-            "description": "Only return assets with non-zero balances",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Account balances",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BalancesResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/market/price/{symbol}": {
-      "get": {
-        "summary": "Get Current Price",
-        "description": "Retrieve the current market price for a specific trading pair",
-        "tags": ["Market Data"],
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "path",
-            "required": true,
-            "description": "Trading pair symbol",
-            "schema": {
-              "type": "string",
-              "example": "BTC-USD"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current price data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PriceResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Symbol not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/orders": {
-      "get": {
-        "summary": "List Orders",
-        "description": "Retrieve all orders for your account with optional filtering",
-        "tags": ["Orders"],
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "description": "Filter by trading pair",
-            "schema": {
-              "type": "string",
-              "example": "BTC-USD"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filter by order status",
-            "schema": {
-              "type": "string",
-              "enum": ["NEW", "FILLED", "CANCELED", "PARTIALLY_FILLED"]
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Number of orders to return",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 100
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of orders",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrdersResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      },
       "post": {
-        "summary": "Create Order",
-        "description": "Place a new trading order",
-        "tags": ["Orders"],
+        "tags": [
+          "orders"
+        ],
+        "summary": "Place a new order",
+        "operationId": "place_order_handler",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrderRequest"
+                "$ref": "#/components/schemas/PlaceOrderRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Order created successfully",
+            "description": "Order placed successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderResponse"
+                  "$ref": "#/components/schemas/PlaceOrderResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid order parameters",
+            "description": "Invalid request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/orders/{orderId}": {
+    "/orders/{order_id}": {
       "get": {
-        "summary": "Get Order Status",
-        "description": "Retrieve status and details of a specific order",
-        "tags": ["Orders"],
+        "tags": [
+          "orders"
+        ],
+        "summary": "Get order by ID",
+        "operationId": "get_order_handler",
         "parameters": [
           {
-            "name": "orderId",
+            "name": "order_id",
             "in": "path",
+            "description": "Order ID to retrieve",
             "required": true,
-            "description": "Order ID",
             "schema": {
-              "type": "string",
-              "example": "order_abc123"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Order details",
+            "description": "Order found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderResponse"
+                  "$ref": "#/components/schemas/GetOrderResponse"
                 }
               }
             }
@@ -259,35 +108,45 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
-      },
-      "delete": {
-        "summary": "Cancel Order",
-        "description": "Cancel an existing order",
-        "tags": ["Orders"],
+      }
+    },
+    "/orders/{order_id}/cancel": {
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Cancel an order",
+        "operationId": "cancel_order_handler",
         "parameters": [
           {
-            "name": "orderId",
+            "name": "order_id",
             "in": "path",
+            "description": "Order ID to cancel",
             "required": true,
-            "description": "Order ID",
             "schema": {
-              "type": "string",
-              "example": "order_abc123"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Order canceled successfully",
+            "description": "Order cancelled successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -301,97 +160,20 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/positions": {
-      "get": {
-        "summary": "Get All Positions",
-        "description": "Retrieve all current positions for your account",
-        "tags": ["Positions"],
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "description": "Filter by trading pair",
-            "schema": {
-              "type": "string",
-              "example": "BTC-USD"
-            }
-          },
-          {
-            "name": "non_zero_only",
-            "in": "query",
-            "description": "Only return positions with non-zero size",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of positions",
+          "500": {
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PositionsResponse"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/order/webhook": {
-      "post": {
-        "description": "Order status updates and executions",
-        "requestBody": {
-          "description": "Order event notification",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrderWebhook"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Webhook received successfully"
-          }
-        }
-      }
-    },
-    "/account/webhook": {
-      "post": {
-        "description": "Account balance and status updates",
-        "requestBody": {
-          "description": "Account event notification",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AccountWebhook"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Webhook received successfully"
           }
         }
       }
@@ -399,449 +181,277 @@
   },
   "components": {
     "schemas": {
-      "AccountResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Account"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Account": {
-        "type": "object",
-        "properties": {
-          "account_id": {
-            "type": "string",
-            "example": "acc_12345678"
-          },
-          "account_type": {
-            "type": "string",
-            "enum": ["individual", "corporate", "pro"]
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "pending", "restricted", "suspended", "closed"]
-          },
-          "tier": {
-            "type": "string",
-            "enum": ["basic", "pro", "vip"]
-          },
-          "trading_enabled": {
-            "type": "boolean"
-          },
-          "withdrawal_enabled": {
-            "type": "boolean"
-          },
-          "deposit_enabled": {
-            "type": "boolean"
-          },
-          "maker_fee_rate": {
-            "type": "string",
-            "example": "0.00100000"
-          },
-          "taker_fee_rate": {
-            "type": "string",
-            "example": "0.00150000"
-          }
-        }
-      },
-      "BalancesResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Balance"
+      "ApiError": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "Validation"
+            ],
+            "properties": {
+              "Validation": {
+                "type": "string"
+              }
             }
           },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Balance": {
-        "type": "object",
-        "properties": {
-          "asset": {
-            "type": "string",
-            "example": "BTC"
-          },
-          "total": {
-            "type": "string",
-            "example": "0.50000000"
-          },
-          "available": {
-            "type": "string",
-            "example": "0.45000000"
-          },
-          "locked": {
-            "type": "string",
-            "example": "0.05000000"
-          }
-        }
-      },
-      "PriceResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Price"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Price": {
-        "type": "object",
-        "properties": {
-          "symbol": {
-            "type": "string",
-            "example": "BTC-USD"
-          },
-          "price": {
-            "type": "string",
-            "example": "45127.68000000"
-          },
-          "bid": {
-            "type": "string",
-            "example": "45125.50000000"
-          },
-          "ask": {
-            "type": "string",
-            "example": "45129.86000000"
-          }
-        }
-      },
-      "OrdersResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Order"
+          {
+            "type": "object",
+            "required": [
+              "NotFound"
+            ],
+            "properties": {
+              "NotFound": {
+                "type": "string"
+              }
             }
           },
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+          {
+            "type": "object",
+            "required": [
+              "OrderFailed"
+            ],
+            "properties": {
+              "OrderFailed": {
+                "type": "string"
+              }
+            }
           },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
+          {
+            "type": "object",
+            "required": [
+              "Internal"
+            ],
+            "properties": {
+              "Internal": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "CancelOrderResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "success"
+            ],
+            "properties": {
+              "success": {
+                "type": "boolean"
+              }
+            }
           }
         }
       },
-      "OrderResponse": {
+      "GetOrderResponse": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
           }
         }
       },
       "Order": {
         "type": "object",
         "properties": {
-          "order_id": {
-            "type": "string",
-            "example": "order_abc123"
-          },
-          "client_order_id": {
-            "type": "string",
-            "example": "my_order_001"
-          },
           "symbol": {
-            "type": "string",
-            "example": "BTC-USD"
-          },
-          "side": {
-            "type": "string",
-            "enum": ["BUY", "SELL"]
-          },
-          "type": {
-            "type": "string",
-            "enum": ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
-          },
-          "quantity": {
-            "type": "string",
-            "example": "0.01000000"
-          },
-          "price": {
-            "type": "string",
-            "example": "45000.00000000"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["NEW", "PENDING", "PARTIALLY_FILLED", "FILLED", "CANCELED", "REJECTED", "EXPIRED"]
-          },
-          "filled_quantity": {
-            "type": "string",
-            "example": "0.00500000"
-          },
-          "remaining_quantity": {
-            "type": "string",
-            "example": "0.00500000"
-          },
-          "time_in_force": {
-            "type": "string",
-            "enum": ["GTC", "IOC", "FOK"]
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "CreateOrderRequest": {
-        "type": "object",
-        "required": ["symbol", "side", "type", "quantity"],
-        "properties": {
-          "symbol": {
-            "type": "string",
-            "example": "BTC-USD"
-          },
-          "side": {
-            "type": "string",
-            "enum": ["BUY", "SELL"]
-          },
-          "type": {
-            "type": "string",
-            "enum": ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
-          },
-          "quantity": {
-            "type": "string",
-            "example": "0.01000000"
-          },
-          "price": {
-            "type": "string",
-            "example": "45000.00000000"
-          },
-          "stop_price": {
-            "type": "string",
-            "example": "44500.00000000"
-          },
-          "time_in_force": {
-            "type": "string",
-            "enum": ["GTC", "IOC", "FOK"],
-            "default": "GTC"
-          },
-          "client_order_id": {
-            "type": "string",
-            "example": "my_order_001"
-          }
-        }
-      },
-      "CancelOrderResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "object",
-            "properties": {
-              "order_id": {
-                "type": "string"
-              },
-              "status": {
-                "type": "string",
-                "example": "CANCELED"
-              },
-              "canceled_at": {
-                "type": "string",
-                "format": "date-time"
-              }
-            }
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
             "type": "string"
-          }
-        }
-      },
-      "PositionsResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Position"
-            }
           },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Position": {
-        "type": "object",
-        "properties": {
-          "position_id": {
-            "type": "string",
-            "example": "pos_12345"
-          },
-          "symbol": {
-            "type": "string",
-            "example": "BTC-USD"
-          },
-          "side": {
-            "type": "string",
-            "enum": ["LONG", "SHORT"]
-          },
-          "size": {
-            "type": "string",
-            "example": "0.50000000"
-          },
-          "entry_price": {
-            "type": "string",
-            "example": "44500.00000000"
-          },
-          "mark_price": {
-            "type": "string",
-            "example": "45127.68000000"
-          },
-          "unrealized_pnl": {
-            "type": "string",
-            "example": "313.84000000"
-          },
-          "margin_used": {
-            "type": "string",
-            "example": "4450.00000000"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["open", "closing", "closed", "liquidated"]
-          }
-        }
-      },
-      "OrderWebhook": {
-        "type": "object",
-        "properties": {
-          "event_type": {
-            "type": "string",
-            "enum": ["order.created", "order.filled", "order.canceled"]
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "AccountWebhook": {
-        "type": "object",
-        "properties": {
-          "event_type": {
-            "type": "string",
-            "enum": ["balance.updated", "account.status_changed"]
+          "instrument_type": {
+            "$ref": "#/components/schemas/InstrumentType"
           },
           "account_id": {
             "type": "string"
           },
-          "balances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Balance"
-            }
+          "order_type": {
+            "$ref": "#/components/schemas/OrderType"
           },
-          "timestamp": {
+          "tif": {
+            "$ref": "#/components/schemas/TimeInForce"
+          },
+          "side": {
+            "$ref": "#/components/schemas/OrderSide"
+          },
+          "qty": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "px": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "trigger_px": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "client_order_id": {
             "type": "string",
-            "format": "date-time"
+            "nullable": true
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
-      "Pagination": {
+      "InstrumentType": {
+        "type": "string",
+        "enum": [
+          "perpetual",
+          "btc",
+          "digital",
+          "equity"
+        ]
+      },
+      "OrderSide": {
+        "type": "string",
+        "enum": [
+          "buy",
+          "sell"
+        ]
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "pendingsubmit",
+          "waitingtrigger",
+          "submitted",
+          "pendingcancel",
+          "partiallyfilled",
+          "partiallyfilledcancelled",
+          "filled",
+          "cancelled",
+          "rejected",
+          "inactive"
+        ]
+      },
+      "OrderType": {
+        "type": "string",
+        "enum": [
+          "limit",
+          "market",
+          "stop",
+          "stoplimit"
+        ]
+      },
+      "PlaceOrderRequest": {
         "type": "object",
+        "required": [
+          "symbol",
+          "instrument_type",
+          "side",
+          "_type",
+          "qty"
+        ],
         "properties": {
-          "next_cursor": {
+          "_type": {
+            "$ref": "#/components/schemas/OrderType"
+          },
+          "cancel_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "client_order_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "instrument_type": {
+            "$ref": "#/components/schemas/InstrumentType"
+          },
+          "px": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "qty": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "side": {
+            "$ref": "#/components/schemas/OrderSide"
+          },
+          "symbol": {
             "type": "string"
           },
-          "has_more": {
-            "type": "boolean"
+          "tif": {
+            "$ref": "#/components/schemas/TimeInForce",
+            "nullable": true
           },
-          "limit": {
-            "type": "integer"
+          "trigger_px": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           }
         }
       },
-      "Error": {
+      "PlaceOrderResponse": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "error": {
+          "data": {
             "type": "object",
+            "required": [
+              "order_id"
+            ],
             "properties": {
-              "code": {
-                "type": "integer"
-              },
-              "message": {
-                "type": "string"
-              },
-              "details": {
+              "order_id": {
                 "type": "string"
               }
             }
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "request_id": {
-            "type": "string"
           }
         }
-      }
-    },
-    "responses": {
-      "Unauthorized": {
-        "description": "Authentication required",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            }
-          }
-        }
+      },
+      "TimeInForce": {
+        "type": "string",
+        "enum": [
+          "gtc",
+          "gtd",
+          "ioc"
+        ]
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "orders",
+      "description": "Order management endpoints"
+    }
+  ]
 }

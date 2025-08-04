@@ -1,0 +1,356 @@
+---
+title: "Order Status"
+api: "GET /api/v1/orders/{order_id}"
+description: "Get detailed information about specific orders"
+---
+
+## Get Order Status
+
+Retrieve status and execution details of a specific order.
+
+### Endpoint
+```http
+GET /api/v1/orders/{order_id}
+```
+
+### Parameters
+
+<ParamField path="order_id" type="string" required>
+  Order ID to retrieve (system-generated or client-provided)
+</ParamField>
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication. Format: `your_api_key_here`
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/api/v1/orders/01234567-89ab-7def-8123-456789abcdea" \
+  -H "X-API-Key: your_api_key_here" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+}
+
+order_id = "01234567-89ab-7def-8123-456789abcdea"
+response = requests.get(
+    f'https://api.roxom.com/api/v1/orders/{order_id}',
+    headers=headers
+)
+
+order = response.json()
+print(f"Status: {order['data']['data']['status']}")
+print(f"Quantity: {order['data']['data']['qty']}")
+```
+
+```javascript JavaScript
+const orderId = '01234567-89ab-7def-8123-456789abcdea';
+const response = await fetch(`https://api.roxom.com/api/v1/orders/${orderId}`, {
+  headers: {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+  }
+});
+
+const order = await response.json();
+console.log('Status:', order.data.data.status);
+console.log('Quantity:', order.data.data.qty);
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "data": {
+      "symbol": "CL",
+      "instrument_type": "perpetual",
+      "account_id": "01234567-89ab-7def-8123-456789abcdef",
+      "order_type": "limit",
+      "tif": "gtc",
+      "side": "buy",
+      "qty": 100000,
+      "px": 50000000,
+      "trigger_px": null,
+      "status": "submitted",
+      "client_order_id": "my_order_001",
+      "created_at": 1685432112000,
+      "updated_at": 1685432112000
+    }
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Detailed order information
+
+  <Expandable title="Order properties">
+    <ResponseField name="order_id" type="string">
+      Unique system-generated order identifier
+    </ResponseField>
+    
+    <ResponseField name="client_order_id" type="string">
+      Client-provided order identifier (if specified)
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading pair for this order
+    </ResponseField>
+    
+    <ResponseField name="side" type="string">
+      Order side: "BUY" or "SELL"
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="string">
+      Total order quantity
+    </ResponseField>
+    
+    <ResponseField name="price" type="string">
+      Order price (for limit orders)
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Current order status
+    </ResponseField>
+    
+    <ResponseField name="filled_quantity" type="string">
+      Amount of the order that has been executed
+    </ResponseField>
+    
+    <ResponseField name="remaining_quantity" type="string">
+      Amount of the order still pending execution
+    </ResponseField>
+    
+    <ResponseField name="executed_price" type="string">
+      Volume-weighted average price of fills
+    </ResponseField>
+    
+    <ResponseField name="time_in_force" type="string">
+      Time in force setting for this order
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp when order was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp when order was last updated
+    </ResponseField>
+    
+    <ResponseField name="fills" type="array">
+      Array of individual trade executions for this order
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Order Status Values
+
+<AccordionGroup>
+  <Accordion title="Active Statuses">
+    **pendingsubmit**: Order has been submitted but not yet processed
+    
+    **waitingtrigger**: Order is waiting for trigger price to be reached
+    
+    **submitted**: Order has been submitted and is active in the order book
+    
+    **partiallyfilled**: Order has been partially filled
+  </Accordion>
+
+  <Accordion title="Completed Statuses">
+    **filled**: Order has been completely filled
+    
+    **cancelled**: Order was cancelled
+    
+    **rejected**: Order was rejected
+    
+    **inactive**: Order is no longer active
+  </Accordion>
+
+  <Accordion title="Transition Statuses">
+    **pendingcancel**: Cancel request has been submitted but not yet processed
+    
+    **partiallyfilledcancelled**: Partially filled order has been cancelled
+  </Accordion>
+</AccordionGroup>
+
+## Fill Details
+
+Each fill in the `fills` array contains:
+
+<ResponseField name="fill" type="object">
+  Individual trade execution details
+
+  <Expandable title="Fill properties">
+    <ResponseField name="fill_id" type="string">
+      Unique identifier for this fill
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="string">
+      Quantity executed in this fill
+    </ResponseField>
+    
+    <ResponseField name="price" type="string">
+      Execution price for this fill
+    </ResponseField>
+    
+    <ResponseField name="fee" type="string">
+      Trading fee charged for this fill
+    </ResponseField>
+    
+    <ResponseField name="fee_asset" type="string">
+      Asset in which the fee was charged
+    </ResponseField>
+    
+    <ResponseField name="timestamp" type="string">
+      ISO 8601 timestamp of execution
+    </ResponseField>
+    
+    <ResponseField name="trade_id" type="string">
+      Market trade ID that matched this order
+    </ResponseField>
+    
+    <ResponseField name="is_maker" type="boolean">
+      Whether this order was the maker in the trade
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Alternative Lookup
+
+You can also look up orders by client order ID:
+
+### Endpoint
+```http
+GET /v1/orders/client/{client_order_id}
+```
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/v1/orders/client/my_order_001" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+</RequestExample>
+
+## Real-time Updates
+
+For real-time order status updates, use the WebSocket API:
+
+```javascript
+// Subscribe to order updates
+ws.send(JSON.stringify({
+  method: 'subscribe',
+  params: {
+    channel: 'orders'
+  },
+  id: 1
+}));
+
+// Receive order status changes
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  if (data.channel === 'orders') {
+    console.log('Order update:', data.data);
+  }
+};
+```
+
+## Order Lifecycle
+
+<Steps>
+<Step title="Order Submission">
+  Order is submitted and receives initial validation.
+  
+  **Status**: NEW
+</Step>
+
+<Step title="Order Book Entry">
+  Order passes validation and enters the order book.
+  
+  **Status**: PENDING
+</Step>
+
+<Step title="Matching Process">
+  Order matching engine attempts to find counterparties.
+  
+  **Status**: PENDING or PARTIALLY_FILLED
+</Step>
+
+<Step title="Execution">
+  Order is matched and executed (partially or fully).
+  
+  **Status**: PARTIALLY_FILLED or FILLED
+</Step>
+
+<Step title="Settlement">
+  Balances are updated and confirmations sent.
+  
+  **Final Status**: FILLED, CANCELED, or EXPIRED
+</Step>
+</Steps>
+
+## Error Handling
+
+### Order Not Found
+
+<ResponseExample>
+```json Error
+{
+  "error": {
+    "code": 404,
+    "message": "Order not found",
+    "details": "Order 'order_invalid' does not exist or does not belong to this account"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+### Unauthorized Access
+
+<ResponseExample>
+```json Error
+{
+  "error": {
+    "code": 403,
+    "message": "Access denied",
+    "details": "Order belongs to a different account"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_def456"
+}
+```
+</ResponseExample>
+
+<CardGroup cols={2}>
+  <Card
+    title="List Orders"
+    icon="list"
+    href="/api-reference/orders/list"
+  >
+    View all your orders
+  </Card>
+  <Card
+    title="Cancel Order"
+    icon="x"
+    href="/api-reference/orders/cancel"
+  >
+    Cancel active orders
+  </Card>
+</CardGroup>

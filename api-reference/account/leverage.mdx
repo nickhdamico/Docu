@@ -1,0 +1,295 @@
+---
+title: "Account Leverage"
+api: "GET /api/v1/accounts/leverage/{symbol}"
+description: "Get and set leverage for trading instruments"
+---
+
+## Get Leverage
+
+Retrieve current leverage setting for a specific trading symbol.
+
+### Endpoint
+```http
+GET /api/v1/accounts/leverage/{symbol}
+```
+
+### Parameters
+
+<ParamField path="symbol" type="string" required>
+  Trading symbol to get leverage for (e.g., "CL")
+</ParamField>
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication. Format: `your_api_key_here`
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/api/v1/accounts/leverage/CL" \
+  -H "X-API-Key: your_api_key_here" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+}
+
+symbol = "CL"
+response = requests.get(
+    f'https://api.roxom.com/api/v1/accounts/leverage/{symbol}',
+    headers=headers
+)
+
+leverage_data = response.json()
+print(f"Current leverage for {symbol}: {leverage_data['data']['leverage']}")
+```
+
+```javascript JavaScript
+const symbol = 'CL';
+const response = await fetch(`https://api.roxom.com/api/v1/accounts/leverage/${symbol}`, {
+  headers: {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+  }
+});
+
+const leverageData = await response.json();
+console.log(`Current leverage for ${symbol}:`, leverageData.data.leverage);
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "symbol": "CL",
+    "leverage": 10,
+    "max_leverage": 50,
+    "updated_at": 1685432112000
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Leverage information for the requested symbol
+
+  <Expandable title="Leverage properties">
+    <ResponseField name="symbol" type="string">
+      Trading symbol
+    </ResponseField>
+    
+    <ResponseField name="leverage" type="integer">
+      Current leverage setting
+    </ResponseField>
+    
+    <ResponseField name="max_leverage" type="integer">
+      Maximum allowed leverage for this symbol
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="integer">
+      Unix timestamp in milliseconds when leverage was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Set Leverage
+
+Update leverage setting for a specific trading symbol.
+
+### Endpoint
+```http
+POST /api/v1/accounts/leverage/{symbol}
+```
+
+### Parameters
+
+<ParamField path="symbol" type="string" required>
+  Trading symbol to set leverage for (e.g., "CL")
+</ParamField>
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication. Format: `your_api_key_here`
+</ParamField>
+
+### Request Body
+
+<ParamField body="leverage" type="integer" required>
+  Desired leverage value (must be within allowed range)
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X POST "https://api.roxom.com/api/v1/accounts/leverage/CL" \
+  -H "X-API-Key: your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leverage": 25
+  }'
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+}
+
+symbol = "CL"
+leverage_data = {
+    'leverage': 25
+}
+
+response = requests.post(
+    f'https://api.roxom.com/api/v1/accounts/leverage/{symbol}',
+    headers=headers,
+    json=leverage_data
+)
+
+result = response.json()
+print(f"Leverage updated: {result['data']['success']}")
+```
+
+```javascript JavaScript
+const symbol = 'CL';
+const leverageData = {
+  leverage: 25
+};
+
+const response = await fetch(`https://api.roxom.com/api/v1/accounts/leverage/${symbol}`, {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'your_api_key_here',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(leverageData)
+});
+
+const result = await response.json();
+console.log('Leverage updated:', result.data.success);
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "success": true,
+    "leverage": 25,
+    "symbol": "CL"
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Leverage update confirmation
+
+  <Expandable title="Update response properties">
+    <ResponseField name="success" type="boolean">
+      Whether the leverage update was successful
+    </ResponseField>
+    
+    <ResponseField name="leverage" type="integer">
+      New leverage value that was set
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading symbol that was updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Leverage Limits
+
+<AccordionGroup>
+  <Accordion title="Leverage Ranges">
+    Different instruments have different maximum leverage limits:
+    
+    **Perpetual Contracts**: 1x to 50x
+    
+    **Spot Trading**: 1x (no leverage)
+    
+    **Digital Assets**: 1x to 10x
+    
+    **Equity Instruments**: 1x to 20x
+  </Accordion>
+
+  <Accordion title="Risk Management">
+    Higher leverage increases both potential profits and losses:
+    
+    - **10x leverage**: 1% price move = 10% P&L
+    - **25x leverage**: 1% price move = 25% P&L
+    - **50x leverage**: 1% price move = 50% P&L
+    
+    <Warning>
+      High leverage increases liquidation risk. Use appropriate position sizing.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Margin Requirements">
+    Initial margin requirements vary by leverage:
+    
+    - **10x leverage**: 10% initial margin
+    - **25x leverage**: 4% initial margin
+    - **50x leverage**: 2% initial margin
+    
+    Maintenance margin is typically 50% of initial margin.
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+### Invalid Leverage Value
+
+<ResponseExample>
+```json Error
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid leverage value",
+  "details": "Leverage must be between 1 and 50 for this symbol"
+}
+```
+</ResponseExample>
+
+### Symbol Not Found
+
+<ResponseExample>
+```json Error
+{
+  "code": "NOT_FOUND",
+  "message": "Symbol not found",
+  "details": "Trading symbol 'INVALID' does not exist"
+}
+```
+</ResponseExample>
+
+<CardGroup cols={2}>
+  <Card
+    title="Account Balance"
+    icon="wallet"
+    href="/api-reference/account/balances"
+  >
+    Check account balance
+  </Card>
+  <Card
+    title="Positions"
+    icon="chart-line"
+    href="/api-reference/positions/list"
+  >
+    View current positions
+  </Card>
+</CardGroup>

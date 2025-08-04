@@ -1,0 +1,413 @@
+---
+title: "List Orders"
+api: "GET /v1/orders"
+description: "Retrieve and filter your trading orders"
+---
+
+## List Orders
+
+Retrieve all orders for your account with powerful filtering and pagination options.
+
+### Endpoint
+```http
+GET /v1/orders
+```
+
+### Parameters
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token for API authentication. Format: `Bearer YOUR_API_KEY`
+</ParamField>
+
+<ParamField query="symbol" type="string">
+  Filter by trading pair (e.g., "BTC-USD")
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by order status: "NEW", "PENDING", "FILLED", "CANCELED", "PARTIALLY_FILLED"
+</ParamField>
+
+<ParamField query="side" type="string">
+  Filter by order side: "BUY" or "SELL"
+</ParamField>
+
+<ParamField query="type" type="string">
+  Filter by order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+</ParamField>
+
+<ParamField query="start_time" type="integer">
+  Start timestamp for date range filter (Unix milliseconds)
+</ParamField>
+
+<ParamField query="end_time" type="integer">
+  End timestamp for date range filter (Unix milliseconds)
+</ParamField>
+
+<ParamField query="limit" type="integer" default="100">
+  Number of orders to return (max: 500)
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  Pagination cursor for retrieving next page
+</ParamField>
+
+### Example Requests
+
+<RequestExample>
+```bash All Orders
+curl -X GET "https://api.roxom.com/v1/orders" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```bash Filtered Orders
+curl -X GET "https://api.roxom.com/v1/orders?symbol=BTC-USD&status=FILLED&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```bash Date Range
+curl -X GET "https://api.roxom.com/v1/orders?start_time=1642204800000&end_time=1642291200000" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+from datetime import datetime, timedelta
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+# Get recent BTC orders
+response = requests.get(
+    'https://api.roxom.com/v1/orders',
+    headers=headers,
+    params={
+        'symbol': 'BTC-USD',
+        'status': 'FILLED',
+        'limit': 20
+    }
+)
+
+orders = response.json()
+for order in orders['data']:
+    print(f"Order {order['order_id']}: {order['side']} {order['quantity']} @ {order['price']}")
+```
+
+```javascript JavaScript
+// Get open orders for all symbols
+const response = await fetch('https://api.roxom.com/v1/orders?status=PENDING', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  }
+});
+
+const orders = await response.json();
+orders.data.forEach(order => {
+  console.log(`${order.symbol}: ${order.side} ${order.quantity} @ ${order.price || 'MARKET'}`);
+});
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": [
+    {
+      "order_id": "order_abc123",
+      "client_order_id": "my_order_001",
+      "symbol": "BTC-USD",
+      "side": "BUY",
+      "type": "LIMIT",
+      "quantity": "0.01000000",
+      "price": "45000.00000000",
+      "status": "FILLED",
+      "filled_quantity": "0.01000000",
+      "remaining_quantity": "0.00000000",
+      "executed_price": "45000.00000000",
+      "time_in_force": "GTC",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:32:00Z"
+    },
+    {
+      "order_id": "order_def456",
+      "client_order_id": null,
+      "symbol": "ETH-USD",
+      "side": "SELL",
+      "type": "MARKET",
+      "quantity": "0.50000000",
+      "price": null,
+      "status": "FILLED",
+      "filled_quantity": "0.50000000",
+      "remaining_quantity": "0.00000000",
+      "executed_price": "3150.25000000",
+      "time_in_force": "IOC",
+      "created_at": "2024-01-15T09:15:00Z",
+      "updated_at": "2024-01-15T09:15:00Z"
+    }
+  ],
+  "pagination": {
+    "next_cursor": "eyJ0aW1lc3RhbXAiOiIyMDI0LTAxLTE1VDA5OjE1OjAwWiJ9",
+    "has_more": true,
+    "limit": 100
+  },
+  "timestamp": "2024-01-15T10:35:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="array">
+  Array of order objects
+
+  <Expandable title="Order properties">
+    <ResponseField name="order_id" type="string">
+      Unique system-generated order identifier
+    </ResponseField>
+    
+    <ResponseField name="client_order_id" type="string | null">
+      Client-provided order identifier (if specified)
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading pair for this order
+    </ResponseField>
+    
+    <ResponseField name="side" type="string">
+      Order side: "BUY" or "SELL"
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="string">
+      Total order quantity
+    </ResponseField>
+    
+    <ResponseField name="price" type="string | null">
+      Order price (null for market orders)
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Current order status
+    </ResponseField>
+    
+    <ResponseField name="filled_quantity" type="string">
+      Amount of the order that has been executed
+    </ResponseField>
+    
+    <ResponseField name="remaining_quantity" type="string">
+      Amount of the order still pending execution
+    </ResponseField>
+    
+    <ResponseField name="executed_price" type="string">
+      Volume-weighted average price of fills
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp when order was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp when order was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="pagination" type="object">
+  Pagination information for navigating through results
+
+  <Expandable title="Pagination properties">
+    <ResponseField name="next_cursor" type="string">
+      Cursor for retrieving the next page of results
+    </ResponseField>
+    
+    <ResponseField name="has_more" type="boolean">
+      Whether there are more results available
+    </ResponseField>
+    
+    <ResponseField name="limit" type="integer">
+      Number of results returned in this response
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Pagination
+
+Use cursor-based pagination to navigate through large result sets:
+
+```python
+def get_all_orders(symbol=None):
+    """Get all orders using pagination."""
+    all_orders = []
+    cursor = None
+    
+    while True:
+        params = {'limit': 500}
+        if symbol:
+            params['symbol'] = symbol
+        if cursor:
+            params['cursor'] = cursor
+            
+        response = requests.get(
+            'https://api.roxom.com/v1/orders',
+            headers=headers,
+            params=params
+        )
+        
+        data = response.json()
+        all_orders.extend(data['data'])
+        
+        if not data['pagination']['has_more']:
+            break
+            
+        cursor = data['pagination']['next_cursor']
+    
+    return all_orders
+```
+
+## Common Filter Combinations
+
+<AccordionGroup>
+  <Accordion title="Active Orders">
+    Get all currently active orders:
+    
+    ```bash
+    GET /v1/orders?status=PENDING&status=PARTIALLY_FILLED
+    ```
+    
+    **Use case**: Monitor orders that need attention
+  </Accordion>
+
+  <Accordion title="Recent Activity">
+    Get orders from the last 24 hours:
+    
+    ```python
+    from datetime import datetime, timedelta
+    
+    end_time = int(datetime.now().timestamp() * 1000)
+    start_time = int((datetime.now() - timedelta(hours=24)).timestamp() * 1000)
+    
+    params = {
+        'start_time': start_time,
+        'end_time': end_time,
+        'limit': 100
+    }
+    ```
+    
+    **Use case**: Daily trading review
+  </Accordion>
+
+  <Accordion title="Symbol Performance">
+    Get all completed orders for a specific pair:
+    
+    ```bash
+    GET /v1/orders?symbol=BTC-USD&status=FILLED
+    ```
+    
+    **Use case**: Analyze trading performance for specific assets
+  </Accordion>
+
+  <Accordion title="Failed Orders">
+    Get orders that were canceled or rejected:
+    
+    ```bash
+    GET /v1/orders?status=CANCELED&status=REJECTED&status=EXPIRED
+    ```
+    
+    **Use case**: Investigate execution issues
+  </Accordion>
+</AccordionGroup>
+
+## Order Sorting
+
+Orders are returned in reverse chronological order (newest first) by default. The sort order cannot be changed through the API.
+
+
+
+## Export Orders
+
+For bulk analysis, you can export order data:
+
+```python
+import csv
+from datetime import datetime, timedelta
+
+def export_orders_to_csv(filename, days=30):
+    """Export orders to CSV file."""
+    
+    end_time = int(datetime.now().timestamp() * 1000)
+    start_time = int((datetime.now() - timedelta(days=days)).timestamp() * 1000)
+    
+    all_orders = []
+    cursor = None
+    
+    while True:
+        params = {
+            'start_time': start_time,
+            'end_time': end_time,
+            'limit': 500
+        }
+        if cursor:
+            params['cursor'] = cursor
+            
+        response = requests.get(
+            'https://api.roxom.com/v1/orders',
+            headers=headers,
+            params=params
+        )
+        
+        data = response.json()
+        all_orders.extend(data['data'])
+        
+        if not data['pagination']['has_more']:
+            break
+            
+        cursor = data['pagination']['next_cursor']
+    
+    # Write to CSV
+    with open(filename, 'w', newline='') as csvfile:
+        fieldnames = ['order_id', 'symbol', 'side', 'type', 'quantity', 
+                     'price', 'status', 'created_at', 'executed_price']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        writer.writeheader()
+        for order in all_orders:
+            writer.writerow({
+                'order_id': order['order_id'],
+                'symbol': order['symbol'],
+                'side': order['side'],
+                'type': order['type'],
+                'quantity': order['quantity'],
+                'price': order.get('price', ''),
+                'status': order['status'],
+                'created_at': order['created_at'],
+                'executed_price': order.get('executed_price', '')
+            })
+    
+    print(f"Exported {len(all_orders)} orders to {filename}")
+```
+
+<CardGroup cols={2}>
+  <Card
+    title="Order Status"
+    icon="info"
+    href="/api-reference/orders/status"
+  >
+    Get detailed order information
+  </Card>
+  <Card
+    title="Cancel Orders"
+    icon="x"
+    href="/api-reference/orders/cancel"
+  >
+    Cancel active orders
+  </Card>
+</CardGroup>

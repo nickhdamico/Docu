@@ -47,20 +47,20 @@ API keys are provided by the Roxom team. Follow these steps to request access:
 
 ## Authentication Method
 
-Roxom uses **Bearer Token** authentication. Include your API key in the `Authorization` header of your requests.
+Roxom uses **API Key** authentication. Include your API key in the `X-API-Key` header of your requests.
 
 ### Request Headers
 
 ```http
-Authorization: Bearer YOUR_API_KEY
+X-API-Key: your_api_key_here
 Content-Type: application/json
 ```
 
 ### Example Request
 
 ```bash
-curl -X GET "https://api.roxom.io/account" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+curl -X GET "https://api.roxom.com/api/v1/accounts/balance" \
+  -H "X-API-Key: your_api_key_here" \
   -H "Content-Type: application/json"
 ```
 
@@ -68,20 +68,20 @@ curl -X GET "https://api.roxom.io/account" \
 import requests
 
 headers = {
-    'Authorization': 'Bearer YOUR_API_KEY',
+    'X-API-Key': 'your_api_key_here',
     'Content-Type': 'application/json'
 }
 
-response = requests.get('https://api.roxom.io/account', headers=headers)
+response = requests.get('https://api.roxom.com/api/v1/accounts/balance', headers=headers)
 ```
 
 ```javascript
 const headers = {
-  'Authorization': 'Bearer YOUR_API_KEY',
+  'X-API-Key': 'your_api_key_here',
   'Content-Type': 'application/json'
 };
 
-fetch('https://api.roxom.io/account', { headers })
+fetch('https://api.roxom.com/api/v1/accounts/balance', { headers })
   .then(response => response.json())
   .then(data => console.log(data));
 ```
@@ -148,19 +148,7 @@ If authentication fails, you will receive one of the following error responses:
     </Tip>
   </Accordion>
 
-  <Accordion title="Rate Limiting">
-    Optimize your API usage to stay within limits:
-    
-    - **Monitor rate limits** associated with your API key tier
-    - **Implement exponential backoff** for failed requests
-    - **Track API usage** to avoid hitting limits unexpectedly
-    - **Consider upgrading** your tier for higher limits if needed
-    - **Batch requests** when possible to optimize API calls
-    
-    <Info>
-    Rate limit headers in API responses help you track remaining quota in real-time.
-    </Info>
-  </Accordion>
+
 </AccordionGroup>
 
 ## Next Steps

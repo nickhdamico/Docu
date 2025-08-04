@@ -9,14 +9,14 @@ The Roxom REST API provides programmatic access to all trading functionality inc
 
 ### Base URL
 ```
-https://api.roxom.com/v1
+https://api.roxom.com/api/v1
 ```
 
 ### API Characteristics
 
 - **REST Architecture**: Standard HTTP methods (GET, POST, PUT, DELETE)
 - **JSON Format**: All requests and responses use JSON
-- **Rate Limited**: Subject to rate limits based on your API key tier
+
 - **Versioned**: Current version is v1, included in the URL path
 
 ## Authentication
@@ -65,25 +65,7 @@ All API responses follow a consistent format:
 }
 ```
 
-## Rate Limits
 
-API rate limits are enforced per API key:
-
-| Tier | Requests per Second | Requests per Minute |
-|------|-------------------|-------------------|
-| **Basic** | 10 | 600 |
-| **Pro** | 50 | 3,000 |
-| **Enterprise** | 200 | 12,000 |
-
-### Rate Limit Headers
-
-All responses include rate limit information:
-
-```http
-X-RateLimit-Limit: 50
-X-RateLimit-Remaining: 47
-X-RateLimit-Reset: 1642248600
-```
 
 ## API Endpoints
 
@@ -129,7 +111,7 @@ Common HTTP status codes and their meanings:
 | `401` | Unauthorized | Invalid or missing API key |
 | `403` | Forbidden | API key lacks required permissions |
 | `404` | Not Found | Resource not found |
-| `429` | Too Many Requests | Rate limit exceeded |
+
 | `500` | Internal Server Error | Server error occurred |
 | `503` | Service Unavailable | Service temporarily unavailable |
 

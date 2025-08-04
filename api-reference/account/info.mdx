@@ -1,0 +1,350 @@
+---
+title: "Account Information"
+api: "GET /v1/account"
+description: "Get general account information and status"
+---
+
+## Get Account Information
+
+Retrieve general account information, permissions, and status details.
+
+### Endpoint
+```http
+GET /v1/account
+```
+
+### Parameters
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token for API authentication. Format: `Bearer YOUR_API_KEY`
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/v1/account" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'https://api.roxom.com/v1/account',
+    headers=headers
+)
+
+account_data = response.json()
+print(f"Account ID: {account_data['data']['account_id']}")
+print(f"Status: {account_data['data']['status']}")
+print(f"Tier: {account_data['data']['tier']}")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.roxom.com/v1/account', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  }
+});
+
+const accountData = await response.json();
+console.log('Account ID:', accountData.data.account_id);
+console.log('Trading enabled:', accountData.data.trading_enabled);
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "account_id": "acc_12345678",
+    "account_type": "individual",
+    "status": "active",
+    "tier": "pro",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
+    "permissions": [
+      "trading",
+      "market_data",
+      "account_read",
+      "withdrawal",
+      "deposit"
+    ],
+    "trading_enabled": true,
+    "withdrawal_enabled": true,
+    "deposit_enabled": true,
+    "maker_fee_rate": "0.00100000",
+    "taker_fee_rate": "0.00150000",
+    "kyc_status": "verified",
+    "two_factor_enabled": true
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Account information and settings
+
+  <Expandable title="Account properties">
+    <ResponseField name="account_id" type="string">
+      Unique account identifier
+    </ResponseField>
+    
+    <ResponseField name="account_type" type="string">
+      Account type: "individual", "corporate", or "pro"
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Account status: "active", "pending", "restricted", "suspended", or "closed"
+    </ResponseField>
+    
+    <ResponseField name="tier" type="string">
+      Trading tier: "basic", "pro", or "vip"
+    </ResponseField>
+    
+    <ResponseField name="permissions" type="array">
+      List of permissions granted to this account
+    </ResponseField>
+    
+    <ResponseField name="trading_enabled" type="boolean">
+      Whether trading is enabled for this account
+    </ResponseField>
+    
+    <ResponseField name="withdrawal_enabled" type="boolean">
+      Whether withdrawals are enabled for this account
+    </ResponseField>
+    
+    <ResponseField name="deposit_enabled" type="boolean">
+      Whether deposits are enabled for this account
+    </ResponseField>
+    
+    <ResponseField name="maker_fee_rate" type="string">
+      Current maker fee rate as decimal (e.g., "0.00100000" = 0.1%)
+    </ResponseField>
+    
+    <ResponseField name="taker_fee_rate" type="string">
+      Current taker fee rate as decimal (e.g., "0.00150000" = 0.15%)
+    </ResponseField>
+    
+    <ResponseField name="kyc_status" type="string">
+      KYC verification status: "pending", "verified", "rejected"
+    </ResponseField>
+    
+    <ResponseField name="two_factor_enabled" type="boolean">
+      Whether two-factor authentication is enabled
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp when account was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp when account was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Account Status Values
+
+<AccordionGroup>
+  <Accordion title="Active Status">
+    **active**: Account is fully operational
+    
+    - All trading functions available
+    - Deposits and withdrawals enabled
+    - Full API access
+  </Accordion>
+
+  <Accordion title="Restricted Statuses">
+    **pending**: Account is pending verification
+    
+    - Limited trading functionality
+    - Reduced withdrawal limits
+    - Some API restrictions
+    
+    **restricted**: Account has trading restrictions
+    
+    - May have deposit/withdrawal limitations
+    - Certain trading features disabled
+    - Contact support for details
+  </Accordion>
+
+  <Accordion title="Inactive Statuses">
+    **suspended**: Account is temporarily suspended
+    
+    - No trading allowed
+    - Withdrawals may be disabled
+    - Contact support for resolution
+    
+    **closed**: Account is permanently closed
+    
+    - No access to trading functions
+    - Final withdrawal procedures only
+  </Accordion>
+</AccordionGroup>
+
+## Account Types
+
+| Type | Description | Features |
+|------|-------------|----------|
+| **individual** | Personal trading account | Standard features, individual verification |
+| **corporate** | Business/institutional account | Enhanced limits, corporate verification |
+| **pro** | Professional trading account | Advanced features, dedicated support |
+
+## Trading Tiers
+
+<AccordionGroup>
+  <Accordion title="Basic Tier">
+    **Requirements**: Completed KYC verification
+    
+    **Features**:
+    - Basic trading fees
+    - Email support
+    
+    **Limits**:
+    - Daily withdrawal: $10,000
+  </Accordion>
+
+  <Accordion title="Pro Tier">
+    **Requirements**: $100,000+ trading volume (30 days)
+    
+    **Features**:
+    - Reduced trading fees
+    - Priority support
+    
+    **Limits**:
+    - Daily withdrawal: $100,000
+  </Accordion>
+
+  <Accordion title="VIP Tier">
+    **Requirements**: $1,000,000+ trading volume (30 days)
+    
+    **Features**:
+    - Lowest trading fees
+    - Dedicated account manager
+    
+    **Limits**:
+    - Daily withdrawal: $1,000,000
+  </Accordion>
+</AccordionGroup>
+
+## Permissions
+
+<AccordionGroup>
+  <Accordion title="Trading Permissions">
+    **trading**: Can place and cancel orders
+    
+    **margin_trading**: Can use margin/leverage features
+    
+    **futures_trading**: Can trade futures contracts
+  </Accordion>
+
+  <Accordion title="Account Permissions">
+    **account_read**: Can view account information
+    
+    **withdrawal**: Can withdraw funds
+    
+    **deposit**: Can deposit funds
+    
+    **transfer**: Can transfer between accounts
+  </Accordion>
+
+  <Accordion title="Data Permissions">
+    **market_data**: Can access market data
+    
+    **historical_data**: Can access historical data
+    
+    **real_time_data**: Can access real-time streams
+  </Accordion>
+</AccordionGroup>
+
+## Account Security
+
+<AccordionGroup>
+  <Accordion title="Two-Factor Authentication">
+    **Setup**: Enable 2FA through account settings
+    
+    **Methods**: TOTP apps (Google Authenticator, Authy)
+    
+    **Required for**: Withdrawals, API key generation, account changes
+  </Accordion>
+
+  <Accordion title="API Key Management">
+    **Permissions**: Assign specific permissions to API keys
+    
+    **IP Restrictions**: Limit API key usage to specific IP addresses
+    
+    **Rotation**: Regularly rotate API keys for security
+  </Accordion>
+
+  <Accordion title="Monitoring">
+    **Login Alerts**: Email notifications for account access
+    
+    **Activity Logs**: Track all account activities
+    
+    **Suspicious Activity**: Automatic alerts for unusual behavior
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+### Insufficient Permissions
+
+<ResponseExample>
+```json Error
+{
+  "error": {
+    "code": 403,
+    "message": "Insufficient permissions",
+    "details": "API key does not have account_read permission"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_def456"
+}
+```
+</ResponseExample>
+
+### Account Suspended
+
+<ResponseExample>
+```json Error
+{
+  "error": {
+    "code": 403,
+    "message": "Account suspended",
+    "details": "Account is temporarily suspended. Contact support for assistance."
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_ghi789"
+}
+```
+</ResponseExample>
+
+<CardGroup cols={2}>
+  <Card
+    title="Account Balances"
+    icon="wallet"
+    href="/api-reference/account/balances"
+  >
+    View your asset balances
+  </Card>
+  <Card
+    title="Trading Fees"
+    icon="percent"
+    href="/api-reference/account/fees"
+  >
+    Check your current fee rates
+  </Card>
+</CardGroup>
