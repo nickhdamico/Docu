@@ -27,22 +27,49 @@ Place a new trading order.
 POST /v1/orders
 ```
 
+### Parameters
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token for API authentication. Format: `Bearer YOUR_API_KEY`
+</ParamField>
+
 ### Request Body
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | Yes | Trading pair symbol (e.g., "BTC-USD") |
-| `side` | string | Yes | Order side: "BUY" or "SELL" |
-| `type` | string | Yes | Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT" |
-| `quantity` | string | Yes | Order quantity |
-| `price` | string | No | Price (required for LIMIT and STOP_LIMIT) |
-| `stop_price` | string | No | Stop price (required for STOP and STOP_LIMIT) |
-| `time_in_force` | string | No | "GTC", "IOC", "FOK" (default: "GTC") |
-| `client_order_id` | string | No | Client-specified order ID |
+<ParamField body="symbol" type="string" required>
+  Trading pair symbol (e.g., "BTC-USD")
+</ParamField>
+
+<ParamField body="side" type="string" required>
+  Order side: "BUY" or "SELL"
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+</ParamField>
+
+<ParamField body="quantity" type="string" required>
+  Order quantity with 8 decimal precision
+</ParamField>
+
+<ParamField body="price" type="string">
+  Order price (required for LIMIT and STOP_LIMIT orders)
+</ParamField>
+
+<ParamField body="stop_price" type="string">
+  Stop trigger price (required for STOP and STOP_LIMIT orders)
+</ParamField>
+
+<ParamField body="time_in_force" type="string" default="GTC">
+  Time in force: "GTC" (Good Till Canceled), "IOC" (Immediate or Cancel), "FOK" (Fill or Kill)
+</ParamField>
+
+<ParamField body="client_order_id" type="string">
+  Client-specified order identifier for tracking
+</ParamField>
 
 ### Example Requests
 
-<CodeGroup>
+<RequestExample>
 ```bash Market Order
 curl -X POST "https://api.roxom.io/v1/orders" \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -94,11 +121,12 @@ response = requests.post(
 order = response.json()
 print(f"Order ID: {order['data']['order_id']}")
 ```
-</CodeGroup>
+</RequestExample>
 
 ### Response
 
-```json
+<ResponseExample>
+```json Success
 {
   "data": {
     "order_id": "order_abc123",
@@ -117,6 +145,65 @@ print(f"Order ID: {order['data']['order_id']}")
   "request_id": "req_abc123"
 }
 ```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Created order details
+
+  <Expandable title="Order properties">
+    <ResponseField name="order_id" type="string">
+      Unique system-generated order identifier
+    </ResponseField>
+    
+    <ResponseField name="client_order_id" type="string">
+      Client-provided order identifier (if specified)
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading pair for this order
+    </ResponseField>
+    
+    <ResponseField name="side" type="string">
+      Order side: "BUY" or "SELL"
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="string">
+      Total order quantity
+    </ResponseField>
+    
+    <ResponseField name="price" type="string">
+      Order price (for limit orders)
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Current order status: "NEW", "PENDING", "PARTIALLY_FILLED", "FILLED", "CANCELED", "REJECTED", "EXPIRED"
+    </ResponseField>
+    
+    <ResponseField name="time_in_force" type="string">
+      Time in force setting for this order
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp when order was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp when order was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp when response was generated
+</ResponseField>
+
+<ResponseField name="request_id" type="string">
+  Unique identifier for this API request
+</ResponseField>
 
 ## Get Order Status
 

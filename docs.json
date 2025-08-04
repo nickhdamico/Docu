@@ -8,34 +8,36 @@
     "dark": "#1E40AF"
   },
   "favicon": "/favicon.svg",
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "index",
-        "decimal-format",
-        "authentication",
-        "base-urls",
-        "health"
-      ]
-    },
-    {
-      "group": "REST API",
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/market-data",
-        "api-reference/orders",
-        "api-reference/account",
-        "api-reference/positions"
-      ]
-    },
-    {
-      "group": "WebSocket API",
-      "pages": [
-        "websockets"
-      ]
-    }
-  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index",
+          "decimal-format",
+          "authentication",
+          "base-urls",
+          "health"
+        ]
+      },
+      {
+        "group": "REST API",
+        "pages": [
+          "api-reference/introduction",
+          "api-reference/market-data",
+          "api-reference/orders",
+          "api-reference/account",
+          "api-reference/positions"
+        ]
+      },
+      {
+        "group": "WebSocket API",
+        "pages": [
+          "websockets"
+        ]
+      }
+    ]
+  },
   "anchors": [
     {
       "anchor": "API Portal",
