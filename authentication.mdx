@@ -1,0 +1,124 @@
+---
+title: "Authentication"
+description: "Learn how to authenticate your API requests using API keys"
+---
+
+## Overview
+
+All Roxom API endpoints require authentication using API keys. You must include your API key in the request headers to access any protected resources.
+
+<Warning>
+  Keep your API keys secure and never expose them in client-side code or public repositories.
+</Warning>
+
+## Getting API Keys
+
+API keys are provided by the Roxom team. To request access:
+
+1. Contact our support team at [support@roxom.io](mailto:support@roxom.io)
+2. Provide details about your intended use case
+3. Our team will review your request and provide API credentials
+
+## Authentication Method
+
+Roxom uses **Bearer Token** authentication. Include your API key in the `Authorization` header of your requests.
+
+### Request Headers
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+### Example Request
+
+```bash
+curl -X GET "https://api.roxom.io/account" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python
+import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get('https://api.roxom.io/account', headers=headers)
+```
+
+```javascript
+const headers = {
+  'Authorization': 'Bearer YOUR_API_KEY',
+  'Content-Type': 'application/json'
+};
+
+fetch('https://api.roxom.io/account', { headers })
+  .then(response => response.json())
+  .then(data => console.log(data));
+```
+
+## Error Responses
+
+If authentication fails, you will receive one of the following error responses:
+
+### Missing Authorization Header
+
+```json
+{
+  "error": 401,
+  "message": "Authorization header is required"
+}
+```
+
+### Invalid API Key
+
+```json
+{
+  "error": 401,
+  "message": "Invalid API key"
+}
+```
+
+### Expired API Key
+
+```json
+{
+  "error": 401,
+  "message": "API key has expired"
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Store API Keys Securely">
+    - Use environment variables to store API keys
+    - Never commit API keys to version control
+    - Use different API keys for different environments (development, staging, production)
+  </Accordion>
+
+  <Accordion title="Handle Authentication Errors">
+    - Implement proper error handling for 401 responses
+    - Log authentication failures for debugging
+    - Have a strategy for API key rotation
+  </Accordion>
+
+  <Accordion title="Rate Limiting">
+    - Be aware of rate limits associated with your API key
+    - Implement exponential backoff for failed requests
+    - Monitor your API usage to avoid hitting limits
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card
+  title="Base URLs"
+  icon="globe"
+  href="/base-urls"
+>
+  Configure your application with the correct API endpoints
+</Card>

@@ -1,0 +1,630 @@
+---
+title: "WebSocket API"
+description: "Real-time market data and account updates"
+---
+
+## Overview
+
+The Roxom WebSocket API provides real-time streaming data for market information, order updates, and account changes. WebSocket connections are persistent and offer lower latency than REST API polling.
+
+### Connection URL
+```
+wss://api.roxom.io/ws
+```
+
+## Authentication
+
+WebSocket connections require authentication for private data streams. Authentication is performed after establishing the connection.
+
+### Authentication Message
+
+```json
+{
+  "method": "auth",
+  "params": {
+    "api_key": "YOUR_API_KEY"
+  },
+  "id": 1
+}
+```
+
+### Authentication Response
+
+```json
+{
+  "id": 1,
+  "result": {
+    "status": "authenticated",
+    "user_id": "user_12345"
+  }
+}
+```
+
+## Connection Example
+
+<CodeGroup>
+```javascript JavaScript
+const ws = new WebSocket('wss://api.roxom.io/ws');
+
+ws.onopen = function() {
+  console.log('Connected to Roxom WebSocket');
+  
+  // Authenticate
+  ws.send(JSON.stringify({
+    method: 'auth',
+    params: {
+      api_key: 'YOUR_API_KEY'
+    },
+    id: 1
+  }));
+};
+
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+
+ws.onerror = function(error) {
+  console.error('WebSocket error:', error);
+};
+
+ws.onclose = function() {
+  console.log('WebSocket connection closed');
+};
+```
+
+```python Python
+import websocket
+import json
+import threading
+
+def on_message(ws, message):
+    data = json.loads(message)
+    print(f"Received: {data}")
+
+def on_error(ws, error):
+    print(f"Error: {error}")
+
+def on_close(ws, close_status_code, close_msg):
+    print("WebSocket closed")
+
+def on_open(ws):
+    print("Connected to Roxom WebSocket")
+    
+    # Authenticate
+    auth_message = {
+        "method": "auth", 
+        "params": {
+            "api_key": "YOUR_API_KEY"
+        },
+        "id": 1
+    }
+    ws.send(json.dumps(auth_message))
+
+ws = websocket.WebSocketApp(
+    "wss://api.roxom.io/ws",
+    on_open=on_open,
+    on_message=on_message,
+    on_error=on_error,
+    on_close=on_close
+)
+
+ws.run_forever()
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "log"
+    "github.com/gorilla/websocket"
+)
+
+type AuthMessage struct {
+    Method string `json:"method"`
+    Params struct {
+        APIKey string `json:"api_key"`
+    } `json:"params"`
+    ID int `json:"id"`
+}
+
+func main() {
+    c, _, err := websocket.DefaultDialer.Dial("wss://api.roxom.io/ws", nil)
+    if err != nil {
+        log.Fatal("dial:", err)
+    }
+    defer c.Close()
+
+    // Authenticate
+    auth := AuthMessage{
+        Method: "auth",
+        ID:     1,
+    }
+    auth.Params.APIKey = "YOUR_API_KEY"
+    
+    err = c.WriteJSON(auth)
+    if err != nil {
+        log.Println("write:", err)
+        return
+    }
+
+    for {
+        _, message, err := c.ReadMessage()
+        if err != nil {
+            log.Println("read:", err)
+            return
+        }
+        log.Printf("recv: %s", message)
+    }
+}
+```
+</CodeGroup>
+
+## Public Data Streams
+
+Public streams don't require authentication and provide market data.
+
+### Subscribe to Ticker
+
+Get real-time price updates for a trading pair.
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "ticker",
+    "symbol": "BTC-USD"
+  },
+  "id": 2
+}
+```
+
+#### Ticker Data
+
+```json
+{
+  "channel": "ticker",
+  "data": {
+    "symbol": "BTC-USD",
+    "price": "45127.68000000",
+    "bid": "45125.50000000",
+    "ask": "45129.86000000",
+    "high_24h": "45500.00000000",
+    "low_24h": "44200.00000000",
+    "volume_24h": "1542.35000000",
+    "price_change_24h": "177.68000000",
+    "price_change_percent_24h": "0.3951",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+### Subscribe to Order Book
+
+Get real-time order book updates.
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "orderbook",
+    "symbol": "BTC-USD",
+    "depth": 20
+  },
+  "id": 3
+}
+```
+
+#### Order Book Snapshot
+
+```json
+{
+  "channel": "orderbook",
+  "type": "snapshot",
+  "data": {
+    "symbol": "BTC-USD",
+    "bids": [
+      ["45125.50000000", "0.25000000"],
+      ["45125.00000000", "0.50000000"]
+    ],
+    "asks": [
+      ["45129.86000000", "0.30000000"],
+      ["45130.00000000", "0.75000000"]
+    ],
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+#### Order Book Update
+
+```json
+{
+  "channel": "orderbook",
+  "type": "update",
+  "data": {
+    "symbol": "BTC-USD",
+    "bids": [
+      ["45126.00000000", "0.15000000"]
+    ],
+    "asks": [],
+    "timestamp": "2024-01-15T10:30:01Z"
+  }
+}
+```
+
+### Subscribe to Trades
+
+Get real-time trade executions.
+
+```json
+{
+  "method": "subscribe", 
+  "params": {
+    "channel": "trades",
+    "symbol": "BTC-USD"
+  },
+  "id": 4
+}
+```
+
+#### Trade Data
+
+```json
+{
+  "channel": "trades",
+  "data": {
+    "symbol": "BTC-USD",
+    "trade_id": "trade_12345",
+    "price": "45127.68000000",
+    "quantity": "0.25000000",
+    "side": "BUY",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+### Subscribe to Klines
+
+Get real-time candlestick data.
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "klines",
+    "symbol": "BTC-USD", 
+    "interval": "1m"
+  },
+  "id": 5
+}
+```
+
+#### Kline Data
+
+```json
+{
+  "channel": "klines",
+  "data": {
+    "symbol": "BTC-USD",
+    "interval": "1m",
+    "open_time": 1642248600000,
+    "close_time": 1642248659999,
+    "open": "45100.00000000",
+    "high": "45150.00000000",
+    "low": "45090.00000000",
+    "close": "45127.68000000",
+    "volume": "12.45000000",
+    "is_closed": true
+  }
+}
+```
+
+## Private Data Streams
+
+Private streams require authentication and provide account-specific data.
+
+### Subscribe to Order Updates
+
+Get real-time updates for your orders.
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "orders"
+  },
+  "id": 6
+}
+```
+
+#### Order Update Data
+
+```json
+{
+  "channel": "orders",
+  "data": {
+    "order_id": "order_abc123",
+    "client_order_id": "my_order_001",
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "LIMIT",
+    "quantity": "0.01000000",
+    "price": "45000.00000000",
+    "status": "FILLED",
+    "filled_quantity": "0.01000000",
+    "remaining_quantity": "0.00000000",
+    "executed_price": "45000.00000000",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "update_type": "execution"
+  }
+}
+```
+
+### Subscribe to Account Updates
+
+Get real-time balance and account changes.
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "account"
+  },
+  "id": 7
+}
+```
+
+#### Account Update Data
+
+```json
+{
+  "channel": "account",
+  "data": {
+    "update_type": "balance_change",
+    "asset": "BTC",
+    "total": "0.51000000",
+    "available": "0.51000000",
+    "locked": "0.00000000",
+    "change": "0.01000000",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+### Subscribe to Position Updates
+
+Get real-time position changes (for margin accounts).
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "channel": "positions"
+  },
+  "id": 8
+}
+```
+
+#### Position Update Data
+
+```json
+{
+  "channel": "positions",
+  "data": {
+    "position_id": "pos_12345",
+    "symbol": "BTC-USD",
+    "side": "LONG",
+    "size": "0.50000000",
+    "entry_price": "44500.00000000",
+    "mark_price": "45127.68000000",
+    "unrealized_pnl": "313.84000000",
+    "margin_ratio": "0.1985",
+    "update_type": "price_update",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+## Subscription Management
+
+### Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "channel": "ticker",
+    "symbol": "BTC-USD"
+  },
+  "id": 9
+}
+```
+
+### List Subscriptions
+
+```json
+{
+  "method": "list_subscriptions",
+  "id": 10
+}
+```
+
+#### Response
+
+```json
+{
+  "id": 10,
+  "result": {
+    "subscriptions": [
+      {
+        "channel": "ticker",
+        "symbol": "BTC-USD"
+      },
+      {
+        "channel": "orders"
+      },
+      {
+        "channel": "account"
+      }
+    ]
+  }
+}
+```
+
+## Message Types
+
+| Type | Description |
+|------|-------------|
+| `snapshot` | Complete state of data (e.g., full order book) |
+| `update` | Incremental changes to existing data |
+| `execution` | Trade execution or order fill |
+| `status_change` | Status updates (order canceled, etc.) |
+
+## Connection Management
+
+### Heartbeat
+
+Send periodic ping messages to keep the connection alive:
+
+```json
+{
+  "method": "ping",
+  "id": 999
+}
+```
+
+#### Pong Response
+
+```json
+{
+  "id": 999,
+  "result": "pong"
+}
+```
+
+### Reconnection Strategy
+
+<AccordionGroup>
+  <Accordion title="Automatic Reconnection">
+    Implement exponential backoff for reconnection attempts:
+    
+    ```javascript
+    let reconnectDelay = 1000; // Start with 1 second
+    const maxDelay = 30000;    // Max 30 seconds
+    
+    function reconnect() {
+      setTimeout(() => {
+        ws = new WebSocket('wss://api.roxom.io/ws');
+        setupHandlers(ws);
+        reconnectDelay = Math.min(reconnectDelay * 2, maxDelay);
+      }, reconnectDelay);
+    }
+    
+    ws.onclose = function() {
+      console.log('Connection lost, reconnecting...');
+      reconnect();
+    };
+    ```
+  </Accordion>
+
+  <Accordion title="State Recovery">
+    After reconnection, re-subscribe to all channels:
+    
+    ```javascript
+    const subscriptions = [];
+    
+    function resubscribe() {
+      subscriptions.forEach(sub => {
+        ws.send(JSON.stringify(sub));
+      });
+    }
+    
+    ws.onopen = function() {
+      authenticate();
+      resubscribe();
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Rate Limits
+
+WebSocket connections have the following limits:
+
+| Limit Type | Value |
+|------------|-------|
+| **Max Connections** | 5 per API key |
+| **Max Subscriptions** | 200 per connection |
+| **Message Rate** | 100 messages/second |
+| **Ping Interval** | 30 seconds recommended |
+
+## Error Handling
+
+### Error Response Format
+
+```json
+{
+  "id": 2,
+  "error": {
+    "code": 4001,
+    "message": "Invalid symbol",
+    "details": "Symbol 'INVALID-PAIR' is not supported"
+  }
+}
+```
+
+### Common Error Codes
+
+| Code | Message | Description |
+|------|---------|-------------|
+| `4000` | Bad Request | Invalid message format |
+| `4001` | Invalid Symbol | Trading pair not supported |
+| `4002` | Not Authenticated | Authentication required |
+| `4003` | Subscription Limit | Too many subscriptions |
+| `4004` | Rate Limit | Too many messages |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Connection Stability">
+    - Implement proper reconnection logic with exponential backoff
+    - Send periodic ping messages to maintain connection
+    - Handle network interruptions gracefully
+    - Monitor connection health and reconnect if needed
+  </Accordion>
+
+  <Accordion title="Data Processing">
+    - Process messages asynchronously to avoid blocking
+    - Implement proper error handling for malformed messages
+    - Use message queues for high-volume data processing
+    - Validate data integrity before using in trading logic
+  </Accordion>
+
+  <Accordion title="Subscription Management">
+    - Only subscribe to channels you actively need
+    - Unsubscribe from unused channels to reduce bandwidth
+    - Track subscription state for reconnection scenarios
+    - Use symbol-specific subscriptions to filter data
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Market Data API"
+    icon="chart-line"
+    href="/api-reference/market-data"
+  >
+    Learn about REST API market data endpoints
+  </Card>
+  <Card
+    title="Orders API"
+    icon="list"
+    href="/api-reference/orders"
+  >
+    Understand order management for trading
+  </Card>
+</CardGroup>

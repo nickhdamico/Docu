@@ -1,0 +1,131 @@
+---
+title: "Base URLs"
+description: "Configure your application with the correct API endpoints"
+---
+
+## API Endpoints
+
+Roxom provides different base URLs for various environments and API types.
+
+### Production Environment
+
+<CodeGroup>
+```http REST API
+https://api.roxom.io
+```
+
+```http WebSocket API
+wss://api.roxom.io/ws
+```
+</CodeGroup>
+
+### API Versioning
+
+All REST API endpoints are versioned. The current version is `v1` and is included in the URL path:
+
+```http
+https://api.roxom.io/v1/{endpoint}
+```
+
+## Regional Endpoints
+
+Roxom operates in multiple regions to provide low-latency access. Choose the endpoint closest to your location:
+
+| Region | REST API | WebSocket API |
+|--------|----------|---------------|
+| **US East** | `https://us-east-api.roxom.io` | `wss://us-east-api.roxom.io/ws` |
+| **US West** | `https://us-west-api.roxom.io` | `wss://us-west-api.roxom.io/ws` |
+| **Europe** | `https://eu-api.roxom.io` | `wss://eu-api.roxom.io/ws` |
+| **Asia Pacific** | `https://ap-api.roxom.io` | `wss://ap-api.roxom.io/ws` |
+
+<Note>
+  Use the global endpoint `https://api.roxom.io` if you're unsure which region to choose. The global endpoint automatically routes requests to the optimal region.
+</Note>
+
+## SSL/TLS Requirements
+
+All API communication must use HTTPS/WSS protocols. HTTP connections are not supported and will be rejected.
+
+### Certificate Pinning
+
+For enhanced security, you may implement certificate pinning. Contact [support@roxom.io](mailto:support@roxom.io) for our current certificate fingerprints.
+
+## Configuration Examples
+
+### Environment Variables
+
+```bash
+# Production
+ROXOM_API_BASE_URL=https://api.roxom.io
+ROXOM_WS_BASE_URL=wss://api.roxom.io/ws
+
+# Regional (US East)
+ROXOM_API_BASE_URL=https://us-east-api.roxom.io
+ROXOM_WS_BASE_URL=wss://us-east-api.roxom.io/ws
+```
+
+### Python Configuration
+
+```python
+import os
+
+class RoxomConfig:
+    BASE_URL = os.getenv('ROXOM_API_BASE_URL', 'https://api.roxom.io')
+    WS_URL = os.getenv('ROXOM_WS_BASE_URL', 'wss://api.roxom.io/ws')
+    API_VERSION = 'v1'
+    
+    @property
+    def rest_endpoint(self):
+        return f"{self.BASE_URL}/{self.API_VERSION}"
+```
+
+### JavaScript Configuration
+
+```javascript
+const config = {
+  baseUrl: process.env.ROXOM_API_BASE_URL || 'https://api.roxom.io',
+  wsUrl: process.env.ROXOM_WS_BASE_URL || 'wss://api.roxom.io/ws',
+  apiVersion: 'v1',
+  
+  get restEndpoint() {
+    return `${this.baseUrl}/${this.apiVersion}`;
+  }
+};
+```
+
+## Health Check
+
+Before integrating, verify that the API is accessible:
+
+```bash
+curl -X GET "https://api.roxom.io/health" \
+  -H "Content-Type: application/json"
+```
+
+Expected response:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0"
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Health Check"
+    icon="heartbeat"
+    href="/health"
+  >
+    Test API connectivity and monitor system status
+  </Card>
+  <Card
+    title="Market Data"
+    icon="chart-line"
+    href="/api-reference/market-data"
+  >
+    Start accessing real-time market data
+  </Card>
+</CardGroup>

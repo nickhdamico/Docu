@@ -1,0 +1,249 @@
+---
+title: "Health Check"
+description: "Monitor API availability and system status"
+---
+
+## Overview
+
+The Roxom API provides health check endpoints to monitor system availability and performance. Use these endpoints to verify connectivity and check the operational status of various services.
+
+## Basic Health Check
+
+### Endpoint
+```http
+GET /health
+```
+
+### Example Request
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.roxom.io/health" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+response = requests.get('https://api.roxom.io/health')
+health_data = response.json()
+print(f"Status: {health_data['status']}")
+```
+
+```javascript JavaScript
+fetch('https://api.roxom.io/health')
+  .then(response => response.json())
+  .then(data => console.log('Status:', data.status));
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.2.3",
+  "uptime": "7d 14h 23m"
+}
+```
+
+## Detailed Health Check
+
+For authenticated users, detailed health information is available:
+
+### Endpoint
+```http
+GET /health/detailed
+```
+
+<Note>
+  This endpoint requires authentication. Include your API key in the Authorization header.
+</Note>
+
+### Example Request
+
+```bash
+curl -X GET "https://api.roxom.io/health/detailed" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+### Response
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.2.3",
+  "uptime": "7d 14h 23m",
+  "services": {
+    "database": {
+      "status": "healthy",
+      "response_time": "2ms"
+    },
+    "market_data": {
+      "status": "healthy",
+      "response_time": "5ms",
+      "last_update": "2024-01-15T10:29:58Z"
+    },
+    "order_matching": {
+      "status": "healthy",
+      "response_time": "1ms",
+      "queue_size": 42
+    },
+    "websocket": {
+      "status": "healthy",
+      "active_connections": 1547
+    }
+  },
+  "metrics": {
+    "requests_per_second": 1250,
+    "average_response_time": "15ms",
+    "error_rate": "0.02%"
+  }
+}
+```
+
+## Status Codes
+
+The health check endpoints return different HTTP status codes based on system health:
+
+| Status Code | System State | Description |
+|-------------|--------------|-------------|
+| `200` | Healthy | All systems operational |
+| `503` | Degraded | Some services experiencing issues |
+| `500` | Unhealthy | Critical systems down |
+
+## Service Status Values
+
+Individual services can report the following status values:
+
+| Status | Description |
+|--------|-------------|
+| `healthy` | Service is fully operational |
+| `degraded` | Service is operational but experiencing performance issues |
+| `unhealthy` | Service is not responding or experiencing critical issues |
+| `maintenance` | Service is temporarily unavailable for maintenance |
+
+## Monitoring Integration
+
+### Prometheus Metrics
+
+Health metrics are exposed in Prometheus format:
+
+```http
+GET /metrics
+```
+
+### Example Monitoring Script
+
+```python
+import requests
+import time
+import logging
+
+def monitor_roxom_health():
+    """Monitor Roxom API health and log any issues."""
+    
+    try:
+        response = requests.get(
+            'https://api.roxom.io/health/detailed',
+            headers={'Authorization': 'Bearer YOUR_API_KEY'},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            health_data = response.json()
+            
+            # Check overall status
+            if health_data['status'] != 'healthy':
+                logging.warning(f"API status: {health_data['status']}")
+            
+            # Check individual services
+            for service, details in health_data.get('services', {}).items():
+                if details['status'] != 'healthy':
+                    logging.warning(f"Service {service} status: {details['status']}")
+                    
+        else:
+            logging.error(f"Health check failed: HTTP {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Health check request failed: {e}")
+
+# Run every 30 seconds
+while True:
+    monitor_roxom_health()
+    time.sleep(30)
+```
+
+### Uptime Monitoring
+
+Set up automated monitoring using services like:
+
+- **Pingdom**: Monitor endpoint availability
+- **DataDog**: Comprehensive API monitoring
+- **New Relic**: Performance monitoring
+- **Custom solutions**: Using the health endpoints
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Connection Timeouts">
+    If you're experiencing connection timeouts:
+    
+    1. Check your network connectivity
+    2. Verify you're using the correct regional endpoint
+    3. Try the global endpoint: `https://api.roxom.io`
+    4. Contact support if issues persist
+  </Accordion>
+
+  <Accordion title="503 Service Unavailable">
+    When receiving 503 responses:
+    
+    1. Check the detailed health endpoint for specific service status
+    2. Implement exponential backoff in your retry logic
+    3. Monitor our status page for ongoing incidents
+    4. Consider using multiple regional endpoints for redundancy
+  </Accordion>
+
+  <Accordion title="Authentication Errors on /health/detailed">
+    If you can't access detailed health information:
+    
+    1. Verify your API key is valid and not expired
+    2. Ensure you have the correct permissions
+    3. Check that you're including the Authorization header
+    4. Contact support to verify your API key permissions
+  </Accordion>
+</AccordionGroup>
+
+## Status Page
+
+For real-time status updates and incident reports, visit our status page:
+
+<Card
+  title="Roxom Status Page"
+  icon="signal"
+  href="https://status.roxom.io"
+>
+  Check current system status and historical uptime
+</Card>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/authentication"
+  >
+    Set up API authentication for detailed monitoring
+  </Card>
+  <Card
+    title="WebSocket API"
+    icon="bolt"
+    href="/websockets"
+  >
+    Connect to real-time data streams
+  </Card>
+</CardGroup>

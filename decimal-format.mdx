@@ -1,0 +1,222 @@
+---
+title: "Decimal Format"
+description: "Understand how numerical values are formatted in API responses"
+---
+
+## Overview
+
+Roxom APIs use standardized decimal formatting to ensure precision and consistency across all financial data. Understanding these formats is crucial for accurate calculations and data interpretation.
+
+## Precision Standards
+
+All monetary and price values in Roxom APIs follow these precision standards:
+
+| Data Type | Decimal Places | Example |
+|-----------|----------------|---------|
+| **Prices** | 8 | `12345.67890123` |
+| **Quantities** | 8 | `1000.50000000` |
+| **Balances** | 8 | `9999.99999999` |
+| **Percentages** | 4 | `15.2500` |
+| **Rates** | 8 | `0.00012345` |
+
+## String Representation
+
+<Warning>
+  All numerical values are returned as **strings** to prevent precision loss during JSON parsing.
+</Warning>
+
+### Example Response
+
+```json
+{
+  "balance": "1234.56789012",
+  "price": "45.67800000",
+  "quantity": "100.00000000",
+  "fee_rate": "0.00100000"
+}
+```
+
+## Parsing Guidelines
+
+### JavaScript/TypeScript
+
+```javascript
+// ❌ Don't use parseFloat (precision loss)
+const price = parseFloat("12.34567890"); // 12.345678899999999
+
+// ✅ Use a decimal library
+import Decimal from 'decimal.js';
+const price = new Decimal("12.34567890"); // Exact precision
+
+// ✅ Or use BigInt for integer calculations
+const priceInSatoshis = BigInt("1234567890"); // For 8 decimal places
+```
+
+### Python
+
+```python
+# ❌ Don't use float (precision loss)
+price = float("12.34567890")  # 12.345678899999999
+
+# ✅ Use Decimal for exact precision
+from decimal import Decimal
+price = Decimal("12.34567890")  # Exact precision
+
+# Example calculation
+quantity = Decimal("100.50000000")
+total = price * quantity  # Exact result
+```
+
+### Java
+
+```java
+// ❌ Don't use double (precision loss)
+double price = Double.parseDouble("12.34567890");
+
+// ✅ Use BigDecimal for exact precision
+import java.math.BigDecimal;
+BigDecimal price = new BigDecimal("12.34567890");
+
+// Example calculation with proper scale
+BigDecimal quantity = new BigDecimal("100.50000000");
+BigDecimal total = price.multiply(quantity);
+```
+
+## Currency Pairs and Precision
+
+Different trading pairs may have specific precision requirements:
+
+### Major Pairs (8 decimal places)
+```json
+{
+  "BTC/USD": {
+    "price": "45000.12345678",
+    "min_quantity": "0.00000001"
+  }
+}
+```
+
+### Minor Pairs (6 decimal places)
+```json
+{
+  "ETH/USDT": {
+    "price": "3000.123456",
+    "min_quantity": "0.000001"
+  }
+}
+```
+
+## Formatting for Display
+
+When displaying values to users, consider appropriate rounding:
+
+```javascript
+// For prices - show relevant decimal places
+function formatPrice(priceString, symbol) {
+  const price = new Decimal(priceString);
+  
+  if (symbol.includes('USD')) {
+    return price.toFixed(2); // $45,000.12
+  } else if (symbol.includes('BTC')) {
+    return price.toFixed(8); // 0.12345678 BTC
+  }
+}
+
+// For balances - avoid trailing zeros
+function formatBalance(balanceString) {
+  return new Decimal(balanceString).toString(); // Removes trailing zeros
+}
+```
+
+## Validation
+
+Always validate decimal inputs before sending to the API:
+
+```python
+from decimal import Decimal, InvalidOperation
+
+def validate_decimal(value, max_places=8):
+    try:
+        decimal_value = Decimal(str(value))
+        
+        # Check decimal places
+        if decimal_value.as_tuple().exponent < -max_places:
+            raise ValueError(f"Too many decimal places (max {max_places})")
+            
+        return str(decimal_value)
+    except InvalidOperation:
+        raise ValueError("Invalid decimal format")
+
+# Example usage
+try:
+    valid_price = validate_decimal("12.34567890")  # ✅ Valid
+    invalid_price = validate_decimal("12.123456789")  # ❌ Too many decimals
+except ValueError as e:
+    print(f"Validation error: {e}")
+```
+
+## Common Pitfalls
+
+<AccordionGroup>
+  <Accordion title="Floating Point Arithmetic">
+    Never use native floating-point arithmetic for financial calculations:
+    
+    ```javascript
+    // ❌ Wrong - precision loss
+    0.1 + 0.2 === 0.3; // false!
+    
+    // ✅ Correct - use decimal library
+    new Decimal(0.1).plus(0.2).equals(0.3); // true
+    ```
+  </Accordion>
+
+  <Accordion title="JSON Parsing">
+    Configure JSON parsers to preserve numerical precision:
+    
+    ```python
+    import json
+    from decimal import Decimal
+    
+    # ❌ Default parsing loses precision
+    data = json.loads('{"price": "12.34567890"}')
+    # price becomes float
+    
+    # ✅ Custom parser preserves strings
+    def decimal_parser(obj):
+        for key, value in obj.items():
+            if key in ['price', 'quantity', 'balance']:
+                obj[key] = Decimal(value)
+        return obj
+    
+    data = json.loads('{"price": "12.34567890"}', object_hook=decimal_parser)
+    ```
+  </Accordion>
+
+  <Accordion title="Database Storage">
+    Use appropriate decimal/numeric types in databases:
+    
+    ```sql
+    -- ✅ Correct - exact precision
+    CREATE TABLE balances (
+        user_id INT,
+        amount DECIMAL(20,8)  -- 20 total digits, 8 decimal places
+    );
+    
+    -- ❌ Wrong - precision loss
+    CREATE TABLE balances (
+        user_id INT,
+        amount FLOAT  -- Approximate, not exact
+    );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card
+  title="Market Data"
+  icon="chart-line"
+  href="/api-reference/market-data"
+>
+  Learn how decimal formatting applies to market data endpoints
+</Card>

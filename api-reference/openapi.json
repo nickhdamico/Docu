@@ -1,16 +1,25 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
+    "title": "Roxom Trading API",
+    "description": "Complete API reference for the Roxom trading platform, providing access to market data, order management, account information, and real-time trading functionality.",
+    "contact": {
+      "name": "Roxom Support",
+      "email": "support@roxom.io"
+    },
     "license": {
-      "name": "MIT"
+      "name": "Proprietary"
     },
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.roxom.io/v1",
+      "description": "Production API"
+    },
+    {
+      "url": "https://sandbox-api.roxom.io/v1", 
+      "description": "Sandbox API for testing"
     }
   ],
   "security": [
@@ -19,72 +28,100 @@
     }
   ],
   "paths": {
-    "/plants": {
+    "/account": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "summary": "Get Account Information",
+        "description": "Retrieve general account information and status",
+        "tags": ["Account"],
+        "responses": {
+          "200": {
+            "description": "Account information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/account/balances": {
+      "get": {
+        "summary": "Get Account Balances",
+        "description": "Retrieve current balances for all assets",
+        "tags": ["Account"],
         "parameters": [
           {
-            "name": "limit",
+            "name": "asset",
             "in": "query",
-            "description": "The maximum number of results to return",
+            "description": "Filter by specific asset",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "example": "BTC"
+            }
+          },
+          {
+            "name": "non_zero_only",
+            "in": "query",
+            "description": "Only return assets with non-zero balances",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Account balances",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "$ref": "#/components/schemas/BalancesResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
+      }
+    },
+    "/market/price/{symbol}": {
+      "get": {
+        "summary": "Get Current Price",
+        "description": "Retrieve the current market price for a specific trading pair",
+        "tags": ["Market Data"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "Trading pair symbol",
+            "schema": {
+              "type": "string",
+              "example": "BTC-USD"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Current price data",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "$ref": "#/components/schemas/PriceResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
+          "404": {
+            "description": "Symbol not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -96,28 +133,85 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/orders": {
+      "get": {
+        "summary": "List Orders",
+        "description": "Retrieve all orders for your account with optional filtering",
+        "tags": ["Orders"],
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "symbol",
+            "in": "query",
+            "description": "Filter by trading pair",
+            "schema": {
+              "type": "string",
+              "example": "BTC-USD"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by order status",
+            "schema": {
+              "type": "string",
+              "enum": ["NEW", "FILLED", "CANCELED", "PARTIALLY_FILLED"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of orders to return",
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
+          "200": {
+            "description": "List of orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Order",
+        "description": "Place a new trading order",
+        "tags": ["Orders"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "unexpected error",
+            "description": "Invalid order parameters",
             "content": {
               "application/json": {
                 "schema": {
@@ -125,28 +219,179 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "summary": "Get Order Status",
+        "description": "Retrieve status and details of a specific order",
+        "tags": ["Orders"],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "description": "Order ID",
+            "schema": {
+              "type": "string",
+              "example": "order_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Cancel Order",
+        "description": "Cancel an existing order",
+        "tags": ["Orders"],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "description": "Order ID",
+            "schema": {
+              "type": "string",
+              "example": "order_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order canceled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelOrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/positions": {
+      "get": {
+        "summary": "Get All Positions",
+        "description": "Retrieve all current positions for your account",
+        "tags": ["Positions"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Filter by trading pair",
+            "schema": {
+              "type": "string",
+              "example": "BTC-USD"
+            }
+          },
+          {
+            "name": "non_zero_only",
+            "in": "query",
+            "description": "Only return positions with non-zero size",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of positions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
     }
   },
   "webhooks": {
-    "/plant/webhook": {
+    "/order/webhook": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "description": "Order status updates and executions",
         "requestBody": {
-          "description": "Plant added to the store",
+          "description": "Order event notification",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/OrderWebhook"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Webhook received successfully"
+          }
+        }
+      }
+    },
+    "/account/webhook": {
+      "post": {
+        "description": "Account balance and status updates",
+        "requestBody": {
+          "description": "Account event notification",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountWebhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook received successfully"
           }
         }
       }
@@ -154,55 +399,440 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "AccountResponse": {
         "type": "object",
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "data": {
+            "$ref": "#/components/schemas/Account"
           },
-          "tag": {
-            "description": "Tag to specify the type",
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
             "type": "string"
           }
         }
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
+      "Account": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "example": "acc_12345678"
           },
-          {
-            "required": [
-              "id"
-            ],
+          "account_type": {
+            "type": "string",
+            "enum": ["individual", "corporate", "pro"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "pending", "restricted", "suspended", "closed"]
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["basic", "pro", "vip"]
+          },
+          "trading_enabled": {
+            "type": "boolean"
+          },
+          "withdrawal_enabled": {
+            "type": "boolean"
+          },
+          "deposit_enabled": {
+            "type": "boolean"
+          },
+          "maker_fee_rate": {
+            "type": "string",
+            "example": "0.00100000"
+          },
+          "taker_fee_rate": {
+            "type": "string",
+            "example": "0.00150000"
+          }
+        }
+      },
+      "BalancesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Balance"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "properties": {
+          "asset": {
+            "type": "string",
+            "example": "BTC"
+          },
+          "total": {
+            "type": "string",
+            "example": "0.50000000"
+          },
+          "available": {
+            "type": "string",
+            "example": "0.45000000"
+          },
+          "locked": {
+            "type": "string",
+            "example": "0.05000000"
+          }
+        }
+      },
+      "PriceResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Price": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "BTC-USD"
+          },
+          "price": {
+            "type": "string",
+            "example": "45127.68000000"
+          },
+          "bid": {
+            "type": "string",
+            "example": "45125.50000000"
+          },
+          "ask": {
+            "type": "string",
+            "example": "45129.86000000"
+          }
+        }
+      },
+      "OrdersResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "example": "order_abc123"
+          },
+          "client_order_id": {
+            "type": "string",
+            "example": "my_order_001"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "BTC-USD"
+          },
+          "side": {
+            "type": "string",
+            "enum": ["BUY", "SELL"]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
+          },
+          "quantity": {
+            "type": "string",
+            "example": "0.01000000"
+          },
+          "price": {
+            "type": "string",
+            "example": "45000.00000000"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["NEW", "PENDING", "PARTIALLY_FILLED", "FILLED", "CANCELED", "REJECTED", "EXPIRED"]
+          },
+          "filled_quantity": {
+            "type": "string",
+            "example": "0.00500000"
+          },
+          "remaining_quantity": {
+            "type": "string",
+            "example": "0.00500000"
+          },
+          "time_in_force": {
+            "type": "string",
+            "enum": ["GTC", "IOC", "FOK"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": ["symbol", "side", "type", "quantity"],
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "BTC-USD"
+          },
+          "side": {
+            "type": "string",
+            "enum": ["BUY", "SELL"]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
+          },
+          "quantity": {
+            "type": "string",
+            "example": "0.01000000"
+          },
+          "price": {
+            "type": "string",
+            "example": "45000.00000000"
+          },
+          "stop_price": {
+            "type": "string",
+            "example": "44500.00000000"
+          },
+          "time_in_force": {
+            "type": "string",
+            "enum": ["GTC", "IOC", "FOK"],
+            "default": "GTC"
+          },
+          "client_order_id": {
+            "type": "string",
+            "example": "my_order_001"
+          }
+        }
+      },
+      "CancelOrderResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
             "type": "object",
             "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+              "order_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "example": "CANCELED"
+              },
+              "canceled_at": {
+                "type": "string",
+                "format": "date-time"
               }
             }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
           }
-        ]
+        }
+      },
+      "PositionsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Position"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "position_id": {
+            "type": "string",
+            "example": "pos_12345"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "BTC-USD"
+          },
+          "side": {
+            "type": "string",
+            "enum": ["LONG", "SHORT"]
+          },
+          "size": {
+            "type": "string",
+            "example": "0.50000000"
+          },
+          "entry_price": {
+            "type": "string",
+            "example": "44500.00000000"
+          },
+          "mark_price": {
+            "type": "string",
+            "example": "45127.68000000"
+          },
+          "unrealized_pnl": {
+            "type": "string",
+            "example": "313.84000000"
+          },
+          "margin_used": {
+            "type": "string",
+            "example": "4450.00000000"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["open", "closing", "closed", "liquidated"]
+          }
+        }
+      },
+      "OrderWebhook": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": ["order.created", "order.filled", "order.canceled"]
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AccountWebhook": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": ["balance.updated", "account.status_changed"]
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Balance"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "next_cursor": {
+            "type": "string"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
       },
       "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
         "type": "object",
         "properties": {
           "error": {
-            "type": "integer",
-            "format": "int32"
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "string"
+              }
+            }
           },
-          "message": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       }
