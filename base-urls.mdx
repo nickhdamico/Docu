@@ -43,21 +43,6 @@ All REST API endpoints are versioned. The current version is `v1` and is include
 https://api.roxom.com/v1/{endpoint}
 ```
 
-## Regional Endpoints
-
-Roxom operates in multiple regions to provide low-latency access. Choose the endpoint closest to your location:
-
-| Region | REST API | WebSocket API |
-|--------|----------|---------------|
-| **US East** | `https://us-east-api.roxom.com` | `wss://us-east-api.roxom.com/ws` |
-| **US West** | `https://us-west-api.roxom.com` | `wss://us-west-api.roxom.com/ws` |
-| **Europe** | `https://eu-api.roxom.com` | `wss://eu-api.roxom.com/ws` |
-| **Asia Pacific** | `https://ap-api.roxom.com` | `wss://ap-api.roxom.com/ws` |
-
-<Note>
-  Use the global endpoint `https://api.roxom.com` if you're unsure which region to choose. The global endpoint automatically routes requests to the optimal region.
-</Note>
-
 ## SSL/TLS Requirements
 
 All API communication must use HTTPS/WSS protocols. HTTP connections are not supported and will be rejected.
