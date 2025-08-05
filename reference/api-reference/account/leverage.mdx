@@ -16,7 +16,7 @@ GET /api/v1/accounts/leverage/{symbol}
 ### Parameters
 
 <ParamField path="symbol" type="string" required>
-  Trading symbol to get leverage for (e.g., "CL")
+  Trading symbol to get leverage for (e.g., "OIL-BTC")
 </ParamField>
 
 <ParamField header="X-API-Key" type="string" required>
@@ -40,7 +40,7 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-symbol = "CL"
+symbol = "OIL-BTC"
 response = requests.get(
     f'https://api.roxom.com/api/v1/accounts/leverage/{symbol}',
     headers=headers
@@ -70,10 +70,7 @@ console.log(`Current leverage for ${symbol}:`, leverageData.data.leverage);
 ```json Success
 {
   "data": {
-    "symbol": "CL",
-    "leverage": 10,
-    "max_leverage": 50,
-    "updated_at": 1685432112000
+    "leverage": "10.0"
   }
 }
 ```
@@ -83,20 +80,8 @@ console.log(`Current leverage for ${symbol}:`, leverageData.data.leverage);
   Leverage information for the requested symbol
 
   <Expandable title="Leverage properties">
-    <ResponseField name="symbol" type="string">
-      Trading symbol
-    </ResponseField>
-    
-    <ResponseField name="leverage" type="integer">
-      Current leverage setting
-    </ResponseField>
-    
-    <ResponseField name="max_leverage" type="integer">
-      Maximum allowed leverage for this symbol
-    </ResponseField>
-    
-    <ResponseField name="updated_at" type="integer">
-      Unix timestamp in milliseconds when leverage was last updated
+    <ResponseField name="leverage" type="string">
+      Current leverage setting as decimal string
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -113,7 +98,7 @@ POST /api/v1/accounts/leverage/{symbol}
 ### Parameters
 
 <ParamField path="symbol" type="string" required>
-  Trading symbol to set leverage for (e.g., "CL")
+  Trading symbol to set leverage for (e.g., "OIL-BTC")
 </ParamField>
 
 <ParamField header="X-API-Key" type="string" required>
@@ -146,9 +131,9 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-symbol = "CL"
+symbol = "OIL-BTC"
 leverage_data = {
-    'leverage': 25
+    'leverage': "25.0"
 }
 
 response = requests.post(
@@ -158,13 +143,13 @@ response = requests.post(
 )
 
 result = response.json()
-print(f"Leverage updated: {result['data']['success']}")
+print(f"New leverage: {result['data']['newLeverage']}")
 ```
 
 ```javascript JavaScript
-const symbol = 'CL';
+const symbol = 'OIL-BTC';
 const leverageData = {
-  leverage: 25
+  leverage: "25.0"
 };
 
 const response = await fetch(`https://api.roxom.com/api/v1/accounts/leverage/${symbol}`, {
@@ -189,7 +174,7 @@ console.log('Leverage updated:', result.data.success);
   "data": {
     "success": true,
     "leverage": 25,
-    "symbol": "CL"
+    "symbol": "OIL-BTC"
   }
 }
 ```

@@ -7,6 +7,18 @@ description: "Complete API reference for the Roxom trading platform"
 
 The Roxom API provides programmatic access to our trading platform, enabling you to build applications that interact with our markets, manage orders, and access real-time market data.
 
+## Supported Instruments
+
+The Roxom API supports the following trading instruments:
+- **OIL-BTC** - Crude Oil perpetual futures
+- **GLD-BTC** - Gold perpetual futures  
+- **SP500-BTC** - S&P 500 perpetual futures
+- **US100-BTC** - NASDAQ 100 perpetual futures
+
+<Note>
+**Symbol Format**: REST API endpoints use compound symbols like `OIL-BTC`, while WebSocket streams may use the same format. Always refer to the specific endpoint documentation for the correct symbol format.
+</Note>
+
 <Note>
   All APIs require authentication using API keys. Contact the Roxom team for API access.
 </Note>

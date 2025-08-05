@@ -1,6 +1,6 @@
 ---
 title: "Cancel Orders"
-api: "POST /api/v1/orders/{order_id}/cancel"
+api: "POST /api/v1/orders/{orderId}/cancel"
 description: "Cancel active trading orders"
 ---
 
@@ -81,20 +81,8 @@ console.log('Order cancelled:', result.data.success);
   Cancellation confirmation details
 
   <Expandable title="Cancellation properties">
-    <ResponseField name="order_id" type="string">
-      ID of the canceled order
-    </ResponseField>
-    
-    <ResponseField name="status" type="string">
-      New order status: "CANCELED" or "PENDING_CANCEL"
-    </ResponseField>
-    
-    <ResponseField name="canceled_at" type="string">
-      ISO 8601 timestamp when order was canceled
-    </ResponseField>
-    
-    <ResponseField name="remaining_quantity" type="string">
-      Quantity that was canceled (for partially filled orders)
+    <ResponseField name="success" type="boolean">
+      Whether the cancellation request was successful
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -160,7 +148,7 @@ const response = await fetch('https://api.roxom.com/api/v1/orders/cancel-all', {
 });
 
 const result = await response.json();
-console.log('Cancelled all orders:', result.data.success);
+console.log('Cancelled order IDs:', result.data.cancelledOrderIds);
 ```
 </RequestExample>
 
@@ -170,25 +158,12 @@ console.log('Cancelled all orders:', result.data.success);
 ```json Success
 {
   "data": {
-    "canceled_orders": [
-      {
-        "order_id": "order_abc123",
-        "status": "CANCELED"
-      },
-      {
-        "order_id": "order_def456", 
-        "status": "CANCELED"
-      },
-      {
-        "order_id": "order_ghi789",
-        "status": "PENDING_CANCEL"
-      }
-    ],
-    "total_canceled": 3,
-    "failed_cancellations": []
+    "cancelledOrderIds": [
+      "01234567-89ab-7def-8123-456789abcdef",
+      "98765432-10fe-dcba-9876-543210fedcba"
+    ]
   },
-  "timestamp": "2024-01-15T10:35:00Z",
-  "request_id": "req_jkl012"
+  "error": false
 }
 ```
 </ResponseExample>
@@ -197,16 +172,8 @@ console.log('Cancelled all orders:', result.data.success);
   Bulk cancellation results
 
   <Expandable title="Bulk cancellation properties">
-    <ResponseField name="canceled_orders" type="array">
-      Array of successfully canceled orders
-    </ResponseField>
-    
-    <ResponseField name="total_canceled" type="integer">
-      Total number of orders canceled
-    </ResponseField>
-    
-    <ResponseField name="failed_cancellations" type="array">
-      Array of orders that could not be canceled with error details
+    <ResponseField name="cancelledOrderIds" type="array">
+      Array of UUIDs for the orders that were cancelled
     </ResponseField>
   </Expandable>
 </ResponseField>

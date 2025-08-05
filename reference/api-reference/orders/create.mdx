@@ -22,38 +22,46 @@ POST /api/v1/orders
 ### Request Body
 
 <ParamField body="symbol" type="string" required>
-  Trading instrument symbol (e.g., "CL")
+  Trading instrument symbol (e.g., "OIL-BTC")
 </ParamField>
 
-<ParamField body="instrument_type" type="string" required>
-  Instrument type: "perpetual", "btc", "digital", "equity"
+<ParamField body="instType" type="string" required>
+  Instrument type: "perpetual"
 </ParamField>
 
 <ParamField body="side" type="string" required>
   Order side: "buy" or "sell"
 </ParamField>
 
-<ParamField body="_type" type="string" required>
-  Order type: "market", "limit", "stop", "stoplimit"
+<ParamField body="orderType" type="string" required>
+  Order type: "market", "limit", "stop", "stopLimit"
 </ParamField>
 
-<ParamField body="qty" type="integer" required>
-  Order quantity in contract units
+<ParamField body="qty" type="string" required>
+  Order quantity as decimal string
 </ParamField>
 
-<ParamField body="px" type="integer">
-  Order price in satoshis (required for limit and stoplimit orders)
+<ParamField body="px" type="string">
+  Order price as decimal string (required for limit and stopLimit orders)
 </ParamField>
 
-<ParamField body="trigger_px" type="integer">
-  Stop trigger price in satoshis (required for stop and stoplimit orders)
+<ParamField body="triggerPx" type="string">
+  Stop trigger price as decimal string (required for stop and stopLimit orders)
 </ParamField>
 
-<ParamField body="tif" type="string" default="gtc">
+<ParamField body="timeInForce" type="string" default="gtc">
   Time in force: "gtc" (Good Till Canceled), "ioc" (Immediate or Cancel), "gtd" (Good Till Date)
 </ParamField>
 
-<ParamField body="client_order_id" type="string">
+<ParamField body="units" type="string" default="btc">
+  Price units: "sats" or "btc"
+</ParamField>
+
+<ParamField body="cancelAt" type="integer">
+  Cancel timestamp in milliseconds (for GTD orders)
+</ParamField>
+
+<ParamField body="clientOrderId" type="string">
   Client-specified order identifier for tracking
 </ParamField>
 
@@ -65,11 +73,12 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
   -H "X-API-Key: your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "symbol": "CL",
-    "instrument_type": "perpetual",
-    "_type": "market",
+    "symbol": "OIL-BTC",
+    "instType": "perpetual",
+    "orderType": "market",
     "side": "buy",
-    "qty": 100000
+    "qty": "100",
+    "units": "sats"
   }'
 ```
 
@@ -78,13 +87,14 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
   -H "X-API-Key: your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "symbol": "CL",
-    "instrument_type": "perpetual",
-    "_type": "limit",
+    "symbol": "OIL-BTC",
+    "instType": "perpetual",
+    "orderType": "limit",
     "side": "buy",
-    "qty": 100000,
-    "px": 50000000,
-    "tif": "gtc"
+    "qty": "100",
+    "px": "50000",
+    "timeInForce": "gtc",
+    "units": "sats"
   }'
 ```
 
@@ -93,13 +103,15 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
   -H "X-API-Key: your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "symbol": "CL",
-    "instrument_type": "perpetual",
-    "_type": "stoplimit",
+    "symbol": "OIL-BTC",
+    "instType": "perpetual",
+    "orderType": "stopLimit",
     "side": "sell",
-    "qty": 100000,
-    "px": 44000000,
-    "trigger_px": 44500000
+    "qty": "100",
+    "px": "49500",
+    "triggerPx": "50000",
+    "timeInForce": "gtc",
+    "units": "sats"
   }'
 ```
 
@@ -113,11 +125,12 @@ headers = {
 
 # Market buy order
 order_data = {
-    'symbol': 'CL',
-    'instrument_type': 'perpetual',
-    '_type': 'market',
+    'symbol': 'OIL-BTC',
+    'instType': 'perpetual',
+    'orderType': 'market',
     'side': 'buy',
-    'qty': 100000
+    'qty': '100',
+    'units': 'sats'
 }
 
 response = requests.post(
@@ -127,17 +140,19 @@ response = requests.post(
 )
 
 order = response.json()
-print(f"Order ID: {order['data']['order_id']}")
+print(f"Order ID: {order['data']['orderId']}")
 ```
 
 ```javascript JavaScript
 const orderData = {
-  symbol: 'CL',
-  instrument_type: 'perpetual',
-  _type: 'limit',
+  symbol: 'OIL-BTC',
+  instType: 'perpetual',
+  orderType: 'limit',
   side: 'buy',
-  qty: 100000,
-  px: 50000000
+  qty: '100',
+  px: '50000',
+  timeInForce: 'gtc',
+  units: 'sats'
 };
 
 const response = await fetch('https://api.roxom.com/api/v1/orders', {
@@ -150,7 +165,7 @@ const response = await fetch('https://api.roxom.com/api/v1/orders', {
 });
 
 const order = await response.json();
-console.log('Order ID:', order.data.order_id);
+console.log('Order ID:', order.data.orderId);
 ```
 </RequestExample>
 
@@ -160,8 +175,9 @@ console.log('Order ID:', order.data.order_id);
 ```json Success
 {
   "data": {
-    "order_id": "01234567-89ab-7def-8123-456789abcdea"
-  }
+    "orderId": "01234567-89ab-7def-8123-456789abcdea"
+  },
+  "error": false
 }
 ```
 </ResponseExample>
@@ -170,7 +186,7 @@ console.log('Order ID:', order.data.order_id);
   Order creation response
 
   <Expandable title="Response properties">
-    <ResponseField name="order_id" type="string">
+    <ResponseField name="orderId" type="string">
       UUID v7 string identifying the created order
     </ResponseField>
   </Expandable>

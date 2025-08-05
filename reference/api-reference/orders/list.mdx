@@ -24,7 +24,7 @@ GET /api/v1/orders
 </ParamField>
 
 <ParamField query="symbol" type="string">
-  Filter by trading pair (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
+  Filter by trading symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
 </ParamField>
 
 <ParamField query="units" type="string">
@@ -101,10 +101,10 @@ data.data.orders.forEach(order => {
       {
         "id": "01234567-89ab-7def-8123-456789abcdef",
         "symbol": "SP500-BTC",
-        "instrument_type": "perpetual",
+        "instType": "perpetual",
         "account_id": "01234567-89ab-7def-8123-456789abcdef",
-        "order_type": "limit",
-        "tif": "gtc",
+        "orderType": "limit",
+        "timeInForce": "gtc",
         "side": "buy",
         "quantity": "0.001",
         "price": "50000",
@@ -120,10 +120,10 @@ data.data.orders.forEach(order => {
       {
         "id": "01234567-89ab-7def-8123-456789abcdea",
         "symbol": "GLD-BTC",
-        "instrument_type": "perpetual",
+        "instType": "perpetual",
         "account_id": "01234567-89ab-7def-8123-456789abcdef",
-        "order_type": "market",
-        "tif": "ioc",
+        "orderType": "market",
+        "timeInForce": "ioc",
         "side": "sell",
         "quantity": "0.002",
         "price": null,
@@ -155,10 +155,10 @@ data.data.orders.forEach(order => {
         </ResponseField>
         
         <ResponseField name="symbol" type="string">
-          Trading pair for this order
+          Trading symbol for this order
         </ResponseField>
         
-        <ResponseField name="instrument_type" type="string">
+        <ResponseField name="instType" type="string">
           Type of instrument: "perpetual" or "spot"
         </ResponseField>
         
@@ -166,11 +166,11 @@ data.data.orders.forEach(order => {
           Account that owns this order
         </ResponseField>
         
-        <ResponseField name="order_type" type="string">
+        <ResponseField name="orderType" type="string">
           Order type: "limit", "market", "stop", "stop_limit"
         </ResponseField>
         
-        <ResponseField name="tif" type="string">
+        <ResponseField name="timeInForce" type="string">
           Time in force: "gtc", "ioc", "fok"
         </ResponseField>
         
@@ -236,7 +236,7 @@ data.data.orders.forEach(order => {
   </Accordion>
 
   <Accordion title="Symbol-Specific Orders">
-    Get orders for a specific trading pair:
+    Get orders for a specific trading symbol:
     
     ```bash
     GET /api/v1/orders?instType=perpetual&symbol=SP500-BTC

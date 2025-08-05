@@ -1,7 +1,7 @@
 ---
 title: "Trading Instruments"
-api: "GET /api/v1/market/instruments"
-description: "Get information about available trading pairs and their specifications"
+api: "GET /api/v1/instruments"
+description: "Get information about available trading symbols and their specifications"
 ---
 
 ## Get Trading Instruments
@@ -16,7 +16,7 @@ GET /api/v1/market/instruments
 ### Parameters
 
 <ParamField query="symbol" type="string">
-  Filter for specific trading pair (e.g., "SP500-BTC"). If not provided, returns all instruments.
+  Filter for specific trading symbol (e.g., "SP500-BTC"). If not provided, returns all instruments.
 </ParamField>
 
 <ParamField query="status" type="string">
@@ -86,7 +86,7 @@ instruments.data.forEach(instrument => {
   "data": [
     {
       "symbol": "SP500-BTC",
-      "base_asset": "SP500",
+      "base_asset": "SP500-BTC",
       "quote_asset": "BTC",
       "description": "S&P 500 Index futures settled in Bitcoin",
       "status": "active",
@@ -110,7 +110,7 @@ instruments.data.forEach(instrument => {
     },
     {
       "symbol": "GLD-BTC",
-      "base_asset": "GLD",
+      "base_asset": "GLD-BTC",
       "quote_asset": "BTC", 
       "description": "Gold ETF futures settled in Bitcoin",
       "status": "active",
@@ -168,7 +168,7 @@ instruments.data.forEach(instrument => {
 
   <Expandable title="Instrument properties">
     <ResponseField name="symbol" type="string">
-      Unique trading pair identifier
+      Unique trading symbol identifier
     </ResponseField>
     
     <ResponseField name="base_asset" type="string">
@@ -260,9 +260,9 @@ instruments.data.forEach(instrument => {
 <AccordionGroup>
   <Accordion title="Available Instruments">
     Roxom currently offers three main trading instruments:
-    - **SP500-BTC**: S&P 500 Index futures
-    - **GLD-BTC**: Gold ETF futures  
-    - **OIL-BTC**: Crude Oil futures
+    - **SP500**: S&P 500 Index futures
+    - **GLD**: Gold ETF futures  
+    - **CL**: Crude Oil futures
     
     All instruments are settled in Bitcoin (BTC).
   </Accordion>

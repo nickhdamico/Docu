@@ -16,7 +16,7 @@ GET /api/v1/market/open-interest
 ### Parameters
 
 <ParamField query="symbol" type="string">
-  Trading pair symbol to filter (e.g., "SP500-BTC"). If not provided, returns data for all symbols.
+  Trading symbol symbol to filter (e.g., "SP500-BTC"). If not provided, returns data for all symbols.
 </ParamField>
 
 <ParamField header="X-API-Key" type="string" required>
@@ -56,7 +56,7 @@ response = requests.get(
 response_btc = requests.get(
     'https://api.roxom.com/api/v1/market/open-interest',
     headers=headers,
-    params={'symbol': 'SP500-BTC'}
+    params={'symbol': 'SP500'}
 )
 
 open_interest = response.json()
@@ -125,7 +125,7 @@ console.log('Open interest data:', openInterest.data);
 
   <Expandable title="Open interest properties">
     <ResponseField name="symbol" type="string">
-      Trading pair symbol
+      Trading symbol symbol
     </ResponseField>
     
     <ResponseField name="open_interest" type="integer">
@@ -186,6 +186,6 @@ Open interest data is updated every 15 minutes during active trading hours and r
     icon="list"
     href="/api/api-reference/market-data/instruments"
   >
-    Available trading pairs
+    Available trading symbols
   </Card>
 </CardGroup>

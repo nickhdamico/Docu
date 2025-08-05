@@ -1,0 +1,1835 @@
+openapi: 3.0.3
+info:
+  title: Roxom Exchange API
+  description: >
+    Roxom Exchange API for trading, market data, and account
+    management.
+
+
+    ## Decimal Format
+
+    All decimal values in the API are returned as strings to preserve precision. 
+    The API accepts decimal values with up to the maximum decimal places for each field:
+    
+    - **BTC amounts**: Up to 8 decimal places (e.g., "1.5", "1.50", "1.50000000")
+    - **Leverage**: Up to 4 decimal places (e.g., "10.5", "10.50", "10.5000")
+    - **Maintenance margin ratio**: Up to 2 decimal places (e.g., "0.5", "0.50")
+    - **Other amounts**: Varies by instrument (typically 2-8 decimal places)
+
+
+    ## Authentication
+
+    All private endpoints MUST be authenticated using HMAC (Hash-based Message Authentication Code) cryptographic signatures. Roxom provides users with an API key pair consisting of:
+
+
+    - **API Key (Public Key)**: A public identifier for your account
+
+    - **Private Key (Secret)**: A cryptographic secret that MUST NOT be shared and should be kept secure
+
+
+    ### Authentication Process
+
+    Each private endpoint request MUST include the following headers:
+
+    - `X-API-Key`: Your API key (public key)
+
+    **Security Notice**: Never share your private key. Roxom will never ask for your private key.
+
+
+    ## Base URLs
+
+    - Production: `https://api.roxom.com`
+
+    - Testnet: `https://api.roxom.io`
+
+  version: 1.0.0
+  contact:
+    name: Roxom API Support
+  license:
+    name: Proprietary
+    url: https://roxom.com/license
+servers:
+  - url: "https://api.roxom.io"
+    description: "Sandbox environment"
+  - url: "https://api.roxom.com"
+    description: "Production environment"
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /ping:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Simple health check endpoint
+      operationId: ping
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "pong"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/orderbook/snapshot:
+    get:
+      tags:
+        - Market Data
+      summary: Get orderbook snapshot
+      description: Fetch orderbook snapshot by symbol and instrument type
+      operationId: getOrderbookSnapshot
+      security: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Symbol name
+          example: "OIL-BTC"
+        - name: instType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/InstrumentType"
+          description: Instrument type
+          example: "perpetual"
+        - name: levels
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of levels per side
+          example: 20
+      responses:
+        "200":
+          description: Orderbook snapshot data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderbookSnapshotResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: Unprocessable Entity - Invalid instrument
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidInstrument:
+                  summary: Invalid instrument
+                  value:
+                    data:
+                      code: 5003
+                      message: "Invalid instrument"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/orders:
+    post:
+      tags:
+        - Orders
+      summary: Place a new order
+      description: Create a new trading order
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderRequest"
+            examples:
+              limitOrderDefault:
+                summary: Limit order (default BTC units)
+                value:
+                  symbol: "OIL-BTC"
+                  instType: "perpetual"
+                  orderType: "limit"
+                  side: "buy"
+                  qty: "100"
+                  px: "0.0005"
+                  timeInForce: "gtc"
+              limitOrderBtc:
+                summary: Limit order with explicit BTC units
+                value:
+                  symbol: "OIL-BTC"
+                  instType: "perpetual"
+                  orderType: "limit"
+                  side: "buy"
+                  qty: "100"
+                  px: "0.0005"
+                  timeInForce: "gtc"
+                  units: "btc"
+              limitOrderSats:
+                summary: Limit order with SATS units
+                value:
+                  symbol: "OIL-BTC"
+                  instType: "perpetual"
+                  orderType: "limit"
+                  side: "buy"
+                  qty: "100"
+                  px: "50000"
+                  timeInForce: "gtc"
+                  units: "sats"
+              marketOrderSats:
+                summary: Market order with SATS units
+                value:
+                  symbol: "OIL-BTC"
+                  instType: "perpetual"
+                  orderType: "market"
+                  side: "sell"
+                  qty: "50"
+                  units: "sats"
+              stopLimitOrderSats:
+                summary: Stop limit order with SATS units
+                value:
+                  symbol: "OIL-BTC"
+                  instType: "perpetual"
+                  orderType: "stopLimit"
+                  side: "buy"
+                  qty: "200"
+                  px: "50000"
+                  triggerPx: "49500"
+                  timeInForce: "gtc"
+                  units: "sats"
+      responses:
+        "200":
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceOrderResponse"
+        "400":
+          description: Bad Request - Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notEnoughFunds:
+                  summary: Not enough funds
+                  value:
+                    data:
+                      code: 5006
+                      message: "Not enough risk to place order"
+                      details: "Not enough funds: required 50000, available 30000"
+                    error: true
+                marketClosed:
+                  summary: Market closed
+                  value:
+                    data:
+                      code: 5009
+                      message: "Cannot place order outside trading hours"
+                      details: "Market is closed for GLD-BTC"
+                    error: true
+                invalidInstrument:
+                  summary: Invalid instrument
+                  value:
+                    data:
+                      code: 5003
+                      message: "Invalid instrument"
+                      details: "Instrument not found for symbol: INVALID-BTC"
+                    error: true
+                missingApiKey:
+                  summary: Missing API key
+                  value:
+                    data:
+                      code: 4004
+                      message: "Api key header not provided"
+                      details: null
+                    error: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Order validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidOrder:
+                  summary: Invalid order
+                  value:
+                    data:
+                      code: 5001
+                      message: "Invalid order"
+                      details: "Order quantity must be greater than 0"
+                    error: true
+                invalidOrderPrice:
+                  summary: Invalid order price
+                  value:
+                    data:
+                      code: 5005
+                      message: "Invalid order price"
+                      details: "Price must be positive and within instrument limits"
+                    error: true
+                invalidOrderInstrument:
+                  summary: Invalid order instrument
+                  value:
+                    data:
+                      code: 5007
+                      message: "Invalid order instrument"
+                      details: "Instrument GLD-BTC is not available for trading"
+                    error: true
+                marketOrderWithPrice:
+                  summary: Market order with price field
+                  value:
+                    data:
+                      code: 5008
+                      message: "Market order should not have px field"
+                      details: "Market orders are executed at current market price"
+                    error: true
+                invalidTriggerPrice:
+                  summary: Invalid trigger price
+                  value:
+                    data:
+                      code: 50012
+                      message: "Invalid order trigger price"
+                      details: "Trigger price must be positive and different from limit price"
+                    error: true
+                invalidTimeInForce:
+                  summary: Invalid time in force
+                  value:
+                    data:
+                      code: 50013
+                      message: "Invalid time in force"
+                      details: "Invalid time in force gtd for order type market"
+                    error: true
+                invalidOrderSize:
+                  summary: Invalid order size
+                  value:
+                    data:
+                      code: 5014
+                      message: "Invalid order size"
+                      details: "Order size exceeds maximum allowed limit"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      tags:
+        - Orders
+      summary: Get real-time orders
+      description: Retrieve all active orders for a specific instrument type
+      operationId: getOrdersRealTime
+      parameters:
+        - name: instType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/InstrumentType"
+          description: Instrument type
+          example: "perpetual"
+        - name: units
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["sats", "btc"]
+            default: "sats"
+          description: Units for the response
+          example: "sats"
+      responses:
+        "200":
+          description: Real-time orders data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetOrdersRealTimeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order by ID
+      description: Retrieve a specific order by its ID
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Order ID
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+        - name: units
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["sats", "btc"]
+            default: "sats"
+          description: Units for the response
+          example: "sats"
+      responses:
+        "200":
+          description: Order data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetOrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: Unprocessable Entity - Invalid order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidOrder:
+                  summary: Invalid order
+                  value:
+                    data:
+                      code: 5001
+                      message: "Invalid order"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/orders/{orderId}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: Cancel an order
+      description: >-
+        Send a request to cancel an order. This endpoint will only send
+        the cancelation request for the given order id. This endpoint does not
+        guarantee that the order will be cancelled. To check the order's status, 
+        use the GET order endpoint which will return its status among other order's data.
+      operationId: cancelOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The order id given by Roxom
+          example: "01234567-89ab-cdef-0123-456789abcdef"
+      responses:
+        "200":
+          description: Order cancelation request sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      orderId:
+                        type: string
+                        description: Order ID of the cancelled order
+                        example: "01234567-89ab-cdef-0123-456789abcdef"
+                  error:
+                    type: boolean
+                    example: false
+        "400":
+          description: Bad Request - Invalid order ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Order not found or cannot be cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                orderNotFound:
+                  summary: Order not found
+                  value:
+                    data:
+                      code: 5001
+                      message: "Order not found"
+                    error: true
+                cannotCancelOrder:
+                  summary: Cannot cancel order
+                  value:
+                    data:
+                      code: 5001
+                      message: "Order cannot be cancelled"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/orders/cancel-all:
+    post:
+      tags:
+        - Orders
+      summary: Cancel all open orders
+      description: >-
+        Send a request to cancel all open orders. This endpoint will only send
+        the cancelation request for all the opened orders. This endpoint does not
+        guarantee that the orders will be cancelled. To check the orders' status, 
+        use the GET orders endpoint which will return its status among other order's data.
+      operationId: cancelAllOrders
+      responses:
+        "200":
+          description: Order cancelation requests sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      orderIds:
+                        type: array
+                        items:
+                          type: string
+                        description: List of Order IDs that were cancelled
+                        example: ["01234567-89ab-cdef-0123-456789abcdef", "98765432-10fe-dcba-9876-543210fedcba"]
+                  error:
+                    type: boolean
+                    example: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/accounts/balance:
+    get:
+      tags:
+        - Account
+      summary: Get account balance
+      description: Get account balance information
+      operationId: getBalance
+      parameters:
+        - name: units
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["sats", "btc"]
+            default: "sats"
+          description: Units for the response
+          example: "sats"
+      responses:
+        "200":
+          description: Account balance information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetBalanceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/accounts/leverage/{symbol}:
+    post:
+      tags:
+        - Account
+      summary: Set leverage
+      description: >-
+        Set the leverage for perpetual positions in a specific symbol
+      operationId: setLeverage
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Symbol name, uppercase only (e.g., OIL-BTC)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leverage
+              properties:
+                leverage:
+                  type: string
+                  description: Leverage value between 1.00 and the maximum leverage for the symbol (supports up to 4 decimal places)
+                  example: "10.5"
+      responses:
+        "200":
+          description: Leverage operation result (success or failure)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/SetLeverageResponse"
+                    description: Leverage set successfully
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - message
+                          - code
+                        properties:
+                          message:
+                            type: string
+                            example: "Unable to change leverage due to margin requirements"
+                            description: Error message describing why leverage change failed
+                          code:
+                            type: number
+                            example: 1
+                            description: >-
+                              Domain-specific error code (1 = Unable to
+                              change leverage due to margin requirements)
+                      error:
+                        type: boolean
+                        example: true
+                    description: Leverage change failed due to margin requirements
+        "400":
+          description: Bad Request - Invalid parameters provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: Unprocessable Entity - Invalid leverage value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidLeverage:
+                  summary: Invalid leverage value
+                  value:
+                    data:
+                      code: 6001
+                      message: "Invalid leverage value"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      tags:
+        - Account
+      summary: Get leverage
+      description: Get the current leverage for a specific symbol
+      operationId: getLeverage
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Symbol name, uppercase only (e.g., OIL-BTC)"
+      responses:
+        "200":
+          description: Current leverage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetLeverageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/positions:
+    get:
+      tags:
+        - Positions
+      summary: Get positions
+      description: Get open positions for a specific instrument type
+      operationId: getPositions
+      parameters:
+        - name: instType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/InstrumentType"
+          description: Instrument type
+          example: "perpetual"
+        - name: units
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["sats", "btc"]
+            default: "sats"
+          description: Units for the response
+          example: "sats"
+      responses:
+        "200":
+          description: Position data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPositionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Invalid instrument
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidInstrument:
+                  summary: Invalid instrument
+                  value:
+                    data:
+                      code: 5003
+                      message: "Invalid instrument"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/market/open-interest:
+    get:
+      tags:
+        - Market Data
+      summary: Get open interest
+      description: Retrieve open interest for a specific symbol
+      operationId: getOpenInterest
+      security: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Symbol name
+          example: "OIL-BTC"
+        - name: instType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/InstrumentType"
+          description: Instrument type
+          example: "perpetual"
+      responses:
+        "200":
+          description: Open interest data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenInterestResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: Unprocessable Entity - Invalid instrument
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidInstrument:
+                  summary: Invalid instrument
+                  value:
+                    data:
+                      code: 5003
+                      message: "Invalid instrument"
+                    error: true
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/market/insurance-fund:
+    get:
+      tags:
+        - Market Data
+      summary: Get insurance fund balance
+      description: Get insurance fund balance information
+      operationId: getInsuranceFund
+      security: []
+      parameters:
+        - name: units
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["sats", "btc"]
+            default: "sats"
+          description: Units for the response
+          example: "sats"
+      responses:
+        "200":
+          description: Insurance fund balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceFundResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/instruments:
+    get:
+      tags:
+        - Market Data
+      summary: Get instruments
+      description: Retrieve all available instruments with optional filtering for tradeable instruments only
+      operationId: getInstruments
+      security: []
+      parameters:
+        - name: tradeable
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Filter to show only tradeable instruments
+          example: true
+        - name: unit
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/BtcUnits"
+          description: Units for the response (sats or btc)
+          example: "btc"
+      responses:
+        "200":
+          description: Instruments data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetInstrumentsResponse"
+              examples:
+                instrumentsResponse:
+                  summary: Instruments response with BTC units
+                  value:
+                    data:
+                      instruments:
+                        - id: "01963bbe-299e-70b5-8ae1-a914270647ef"
+                          symbol: "GLD-BTC"
+                          instrumentType: "perpetual"
+                          quantityTickSize: "0.01"
+                          contractSize: 1
+                          tickSize: "0.00000100"
+                          baseDecimals: 2
+                          quoteDecimals: 8
+                          maxOrderSize: "250000000"
+                          minOrderPrice: "0.00000001"
+                          maxOrderPrice: "50.00000000"
+                          maxLeverage: "10.0000"
+                          maintenanceMarginRatio: "50.00%"
+                          btcUnits: "btc"
+                    error: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/market/calendars:
+    get:
+      tags:
+        - Market Data
+      summary: Get trading calendars
+      description: Retrieve all available trading calendars with their trading hours and holidays
+      operationId: getCalendars
+      security: []
+      responses:
+        "200":
+          description: Calendars data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCalendarsResponse"
+              examples:
+                calendarsResponse:
+                  summary: Trading calendars response
+                  value:
+                    data:
+                      calendars:
+                        - id: "01963bbe-299e-70b5-8ae1-a914270647ef"
+                          name: "US Markets"
+                          code: "US"
+                          timezone: "America/New_York"
+                          openHour: "09:30"
+                          closeHour: "16:00"
+                          openDayBefore: false
+                          openOnWeekends: false
+                          holidays:
+                            - date: "2024-01-01"
+                              lateOpenTime: null
+                              earlyCloseTime: null
+                              description: "New Year's Day"
+                            - date: "2024-11-29"
+                              lateOpenTime: null
+                              earlyCloseTime: "13:00"
+                              description: "Thanksgiving Day"
+                    error: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Your API key (public key) provided by Roxom
+
+  schemas:
+    InstrumentType:
+      type: string
+      enum:
+        - perpetual
+      description: Type of financial instrument
+      example: "perpetual"
+
+    BtcUnits:
+      type: string
+      enum:
+        - sats
+        - btc
+      description: BTC denomination unit
+      example: "sats"
+      default: "sats"
+
+    OrderSide:
+      type: string
+      enum:
+        - buy
+        - sell
+      description: Order side
+      example: "buy"
+
+    OrderType:
+      type: string
+      enum:
+        - limit
+        - market
+        - stop
+        - stopLimit
+      description: Order type
+      example: "limit"
+
+    TimeInForce:
+      type: string
+      enum:
+        - gtc
+        - gtd
+        - ioc
+      description: Time in force
+      example: "gtc"
+
+    OrderStatus:
+      type: string
+      enum:
+        - pendingsubmit
+        - waitingtrigger
+        - submitted
+        - pendingcancel
+        - partiallyfilled
+        - partiallyfilledcancelled
+        - filled
+        - cancelled
+        - rejected
+        - inactive
+      description: Order status
+      example: "submitted"
+
+    PositionSide:
+      type: string
+      enum:
+        - long
+        - short
+      description: Position side
+      example: "long"
+
+    PositionStatus:
+      type: string
+      enum:
+        - normal
+        - liq
+        - adl
+      description: Position status
+      example: "normal"
+
+    # Order-related schemas
+    PlaceOrderRequest:
+      type: object
+      required:
+        - symbol
+        - instType
+        - orderType
+        - side
+        - qty
+      properties:
+        symbol:
+          type: string
+          description: Symbol name
+          example: "OIL-BTC"
+        instType:
+          $ref: "#/components/schemas/InstrumentType"
+        orderType:
+          $ref: "#/components/schemas/OrderType"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        qty:
+          type: string
+          description: Order quantity
+          example: "100"
+        px:
+          type: string
+          description: Order price in the specified units (required for limit orders)
+          example: "50000"
+        timeInForce:
+          $ref: "#/components/schemas/TimeInForce"
+        triggerPx:
+          type: string
+          description: Trigger price in the specified units
+          example: "49500"
+        cancelAt:
+          type: integer
+          description: Cancel timestamp (ms)
+          example: 1642678800000
+        units:
+          $ref: "#/components/schemas/BtcUnits"
+          description: Units for price values (optional, defaults to "btc")
+
+    PlaceOrderResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            orderId:
+              type: string
+              format: uuid
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        error:
+          type: boolean
+          example: false
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        symbol:
+          type: string
+          example: "OIL-BTC"
+        instType:
+          $ref: "#/components/schemas/InstrumentType"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        createdAt:
+          type: integer
+          description: Created timestamp in nanoseconds
+          example: 1642678800000000000
+        type:
+          $ref: "#/components/schemas/OrderType"
+        qty:
+          type: string
+          description: Order quantity
+          example: "100"
+        size:
+          type: string
+          description: Remaining quantity
+          example: "50"
+        accountId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        timeInForce:
+          $ref: "#/components/schemas/TimeInForce"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        px:
+          type: string
+          description: Order price in the specified units
+          example: "50000"
+        triggerPx:
+          type: string
+          nullable: true
+          description: Trigger price in the specified units
+          example: "49500"
+        cancelAt:
+          type: integer
+          nullable: true
+          description: Expiration timestamp (ms)
+          example: 1642678800000
+        clientOrderId:
+          type: string
+          nullable: true
+          description: Client order ID
+          example: "client_order_123"
+        isTriggered:
+          type: boolean
+          nullable: true
+          description: Whether the conditional order has been triggered
+          example: false
+        units:
+          $ref: "#/components/schemas/BtcUnits"
+
+    GetOrdersRealTimeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            orders:
+              type: array
+              items:
+                $ref: "#/components/schemas/Order"
+        error:
+          type: boolean
+          example: false
+
+    GetOrderResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            order:
+              $ref: "#/components/schemas/Order"
+              nullable: true
+        error:
+          type: boolean
+          example: false
+
+    # Account-related schemas
+    GetBalanceResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            cashAmount:
+              type: string
+              description: Cash amount in the specified units
+              example: "1000000"
+            usedMargin:
+              type: string
+              description: Used margin in the specified units
+              example: "150000"
+            freezeByOrdersAmount:
+              type: string
+              description: Amount frozen by orders in the specified units
+              example: "50000"
+            unrealizedPnl:
+              type: string
+              nullable: true
+              description: Unrealized P&L in the specified units
+              example: "25000"
+            availableCash:
+              type: string
+              description: Available cash in the specified units
+              example: "800000"
+            netBalance:
+              type: string
+              nullable: true
+              description: Net balance in the specified units
+              example: "1025000"
+            lastUpdated:
+              type: integer
+              description: Last updated timestamp (ms)
+              example: 1642678800000
+            units:
+              $ref: "#/components/schemas/BtcUnits"
+        error:
+          type: boolean
+          example: false
+
+    GetLeverageResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            leverage:
+              type: string
+              description: The current leverage value
+              example: "10.5"
+        error:
+          type: boolean
+          example: false
+
+    SetLeverageResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            newLeverage:
+              type: string
+              description: The new leverage value that was set
+              example: "10.5"
+        error:
+          type: boolean
+          example: false
+
+    # Position-related schemas
+    Position:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Position ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        accountId:
+          type: string
+          format: uuid
+          description: Account ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        instrumentId:
+          type: string
+          format: uuid
+          description: Instrument ID
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        side:
+          $ref: "#/components/schemas/PositionSide"
+        entryAmount:
+          type: string
+          description: Entry amount as decimal string
+          example: "2.5"
+        exitAmount:
+          type: string
+          description: Exit amount as decimal string
+          example: "0.5"
+        size:
+          type: string
+          description: Current position size as decimal string
+          example: "2.0"
+        openDate:
+          type: integer
+          description: Position open timestamp (ms)
+          example: 1642678800000
+        closeDate:
+          type: integer
+          nullable: true
+          description: Position close timestamp (ms)
+          example: null
+        avgEntry:
+          type: string
+          description: Average entry price in the specified units
+          example: "50000"
+        avgExit:
+          type: string
+          nullable: true
+          description: Average exit price in the specified units
+          example: null
+        entryFees:
+          type: string
+          description: Entry fees in the specified units
+          example: "250"
+        exitFees:
+          type: string
+          nullable: true
+          description: Exit fees in the specified units
+          example: null
+        initialMargin:
+          type: string
+          description: Initial margin in the specified units
+          example: "10000"
+        margin:
+          type: string
+          description: Current margin in the specified units
+          example: "8500"
+        liquidationPrice:
+          type: string
+          description: Liquidation price in the specified units
+          example: "45000"
+        bankrupcyPrice:
+          type: string
+          description: Bankruptcy price in the specified units
+          example: "44000"
+        leverage:
+          type: string
+          description: Position leverage as decimal string
+          example: "10.0000"
+        maintenanceMarginRatio:
+          type: string
+          description: Maintenance margin ratio as decimal string
+          example: "0.50"
+        status:
+          $ref: "#/components/schemas/PositionStatus"
+        createdAt:
+          type: integer
+          description: Created timestamp (ms)
+          example: 1642678800000
+        updatedAt:
+          type: integer
+          description: Updated timestamp (ms)
+          example: 1642678800000
+        units:
+          $ref: "#/components/schemas/BtcUnits"
+
+    GetPositionsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            positions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Position"
+        error:
+          type: boolean
+          example: false
+
+    # Market data schemas
+    OrderbookSnapshotResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+              example: "OIL-BTC"
+            bids:
+              type: array
+              description: "price and size arrays"
+              items:
+                type: array
+                items:
+                  type: string
+                minItems: 2
+                maxItems: 2
+                example: [ "50000", "100.12" ]
+            asks:
+              type: array
+              items:
+                type: array
+                description: "price and size arrays"
+                items:
+                  type: string
+                minItems: 2
+                maxItems: 2
+                example: [ "51000", "150.01" ]
+            timestamp:
+              type: integer
+              example: 1642678800000
+        error:
+          type: boolean
+          example: false
+
+    OpenInterestResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            openInterest:
+              type: string
+              example: "1000000"
+            timestamp:
+              type: integer
+              example: 1642678800000
+        error:
+          type: boolean
+          example: false
+
+    InsuranceFundResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            balance:
+              type: string
+              example: "5000000"
+            updatedTime:
+              type: integer
+              example: 1642678800000
+            unit:
+              type: string
+              example: "sats"
+        error:
+          type: boolean
+          example: false
+
+    GetInstrumentsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            instruments:
+              type: array
+              items:
+                $ref: "#/components/schemas/Instrument"
+        error:
+          type: boolean
+          example: false
+
+    Instrument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Instrument ID
+          example: "01963bbe-299e-70b5-8ae1-a914270647ef"
+        symbol:
+          type: string
+          description: Symbol name
+          example: "GLD-BTC"
+        instrumentType:
+          type: string
+          description: Instrument type
+          example: "perpetual"
+        quantityTickSize:
+          type: string
+          description: Minimum quantity increment
+          example: "0.01"
+        contractSize:
+          type: integer
+          description: Contract size
+          example: 1
+        tickSize:
+          type: string
+          description: Minimum price increment
+          example: "0.00000100"
+        baseDecimals:
+          type: integer
+          description: Base asset decimal places
+          example: 2
+        quoteDecimals:
+          type: integer
+          description: Quote asset decimal places
+          example: 8
+        maxOrderSize:
+          type: string
+          description: Maximum order size
+          example: "250000000"
+        minOrderPrice:
+          type: string
+          nullable: true
+          description: Minimum order price
+          example: "0.00000001"
+        maxOrderPrice:
+          type: string
+          nullable: true
+          description: Maximum order price
+          example: "50.00000000"
+        maxLeverage:
+          type: string
+          nullable: true
+          description: Maximum leverage
+          example: "10.0000"
+        maintenanceMarginRatio:
+          type: string
+          description: Maintenance margin ratio
+          example: "50.00%"
+        btcUnits:
+          $ref: "#/components/schemas/BtcUnits"
+          description: BTC denomination unit used in the response
+
+    GetCalendarsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            calendars:
+              type: array
+              items:
+                $ref: "#/components/schemas/Calendar"
+        error:
+          type: boolean
+          example: false
+
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Calendar ID
+          example: "01963bbe-299e-70b5-8ae1-a914270647ef"
+        name:
+          type: string
+          description: Calendar name
+          example: "US Markets"
+        code:
+          type: string
+          description: Calendar code
+          example: "US"
+        timezone:
+          type: string
+          description: Calendar timezone
+          example: "America/New_York"
+        openHour:
+          type: string
+          description: Market open hour (HH:MM format)
+          example: "09:30"
+        closeHour:
+          type: string
+          description: Market close hour (HH:MM format)
+          example: "16:00"
+        openDayBefore:
+          type: boolean
+          description: Whether market opens the day before
+          example: false
+        openOnWeekends:
+          type: boolean
+          description: Whether market is open on weekends
+          example: false
+        holidays:
+          type: array
+          description: List of holidays and special trading hours
+          items:
+            $ref: "#/components/schemas/CalendarHoliday"
+
+    CalendarHoliday:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Holiday date (YYYY-MM-DD format)
+          example: "2024-01-01"
+        lateOpenTime:
+          type: string
+          nullable: true
+          description: Late open time on this date (HH:MM format)
+          example: null
+        earlyCloseTime:
+          type: string
+          nullable: true
+          description: Early close time on this date (HH:MM format)
+          example: "13:00"
+        description:
+          type: string
+          nullable: true
+          description: Holiday description
+          example: "New Year's Day"
+
+    # Error schemas
+    ErrorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Domain-specific error code
+              example: 5001
+            message:
+              type: string
+              description: Error message
+              example: "Invalid order"
+            details:
+              type: string
+              nullable: true
+              description: Additional error details
+              example: "Order quantity must be greater than 0"
+        error:
+          type: boolean
+          example: true
+
+    # Specific error codes for better documentation
+    ValidationError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  enum: [5003, 5004, 6001]
+                  description: |
+                    Validation error codes:
+                    - 5003: Invalid instrument
+                    - 5004: Invalid instrument type
+                    - 6001: Invalid leverage value
+                message:
+                  type: string
+                  description: Validation error message
+                details:
+                  type: string
+                  nullable: true
+                  description: Additional validation error details
+
+    OrderError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  enum: [5001, 5005, 5006, 5007, 5008, 5009, 5010, 5011, 50012, 50013, 5014]
+                  description: |
+                    Order error codes:
+                    - 5001: Invalid order
+                    - 5005: Invalid order price
+                    - 5006: Not enough risk to place order
+                    - 5007: Invalid order instrument
+                    - 5008: Market order should not have px field
+                    - 5009: Cannot place order outside trading hours
+                    - 5010: Order not found
+                    - 5011: Order is already completed
+                    - 50012: Invalid order trigger price
+                    - 50013: Invalid time in force
+                    - 5014: Invalid order size
+                message:
+                  type: string
+                  description: Order error message
+                details:
+                  type: string
+                  nullable: true
+                  description: Additional order error details
+
+    NotFoundError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  enum: [404, 5000, 5010]
+                  description: |
+                    Not found error codes:
+                    - 404: Resource not found
+                    - 5000: Instrument not found
+                    - 5010: Order not found
+                message:
+                  type: string
+                  description: Not found error message
+                details:
+                  type: string
+                  nullable: true
+                  description: Additional details about what was not found
+
+    AuthenticationError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  enum: [4001, 4003, 4004]
+                  description: |
+                    Authentication error codes:
+                    - 4001: Unauthorized
+                    - 4003: Invalid API key
+                    - 4004: Missing API key
+                message:
+                  type: string
+                  description: Authentication error message
+                details:
+                  type: string
+                  nullable: true
+                  description: Additional authentication error details
+
+    ServiceUnavailableError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  enum: [6004]
+                  description: |
+                    Service unavailable error codes:
+                    - 6004: Insurance fund not available
+                message:
+                  type: string
+                  enum: ["Insurance fund not available"]
+                  description: Service unavailable error message
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid parameters or validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalidInstrument:
+              summary: Invalid instrument
+              value:
+                data:
+                  code: 5003
+                  message: "Invalid instrument"
+                error: true
+            invalidLeverage:
+              summary: Invalid leverage value
+              value:
+                data:
+                  code: 6001
+                  message: "Invalid leverage value"
+                error: true
+
+    NotFound:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            resourceNotFound:
+              summary: Resource not found
+              value:
+                data:
+                  code: 404
+                  message: "Resource not found"
+                error: true
+            instrumentNotFound:
+              summary: Instrument not found
+              value:
+                data:
+                  code: 5000
+                  message: "Instrument not found"
+                error: true
+
+    UnprocessableEntity:
+      description: Unprocessable Entity - Order validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalidOrder:
+              summary: Invalid order
+              value:
+                data:
+                  code: 5001
+                  message: "Invalid order"
+                error: true
+            invalidOrderPrice:
+              summary: Invalid order price
+              value:
+                data:
+                  code: 5005
+                  message: "Invalid order price"
+                error: true
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                  code:
+                    type: integer
+                    example: 500
+              error:
+                type: boolean
+                example: true
+
+    Unauthorized:
+      description: Unauthorized - Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            unauthorized:
+              summary: Unauthorized
+              value:
+                data:
+                  code: 4001
+                  message: "Unauthorized"
+                  details: null
+                error: true
+            invalidApiKey:
+              summary: Invalid API key
+              value:
+                data:
+                  code: 4003
+                  message: "Provided api key is not valid"
+                  details: "API key format is invalid or expired"
+                error: true
+            missingApiKey:
+              summary: Missing API key
+              value:
+                data:
+                  code: 4004
+                  message: "Api key header not provided"
+                  details: "X-API-Key header is required for authenticated endpoints"
+                error: true
+
+    ServiceUnavailable:
+      description: Service Unavailable - Service temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            insuranceFundUnavailable:
+              summary: Insurance fund not available
+              value:
+                data:
+                  code: 6004
+                  message: "Insurance fund not available"
+                error: true
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Market Data
+    description: Public market data endpoints
+  - name: Orders
+    description: Order management endpoints
+  - name: Account
+    description: Account management endpoints
+  - name: Positions
+    description: Position management endpoints

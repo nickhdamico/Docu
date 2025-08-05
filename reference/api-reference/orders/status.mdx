@@ -1,6 +1,6 @@
 ---
 title: "Order Status"
-api: "GET /api/v1/orders/{order_id}"
+api: "GET /api/v1/orders/{orderId}"
 description: "Get detailed information about specific orders"
 ---
 
@@ -73,11 +73,11 @@ console.log('Quantity:', order.data.data.qty);
 {
   "data": {
     "data": {
-      "symbol": "CL",
-      "instrument_type": "perpetual",
+      "symbol": "OIL-BTC",
+      "instType": "perpetual",
       "account_id": "01234567-89ab-7def-8123-456789abcdef",
-      "order_type": "limit",
-      "tif": "gtc",
+      "orderType": "limit",
+      "timeInForce": "gtc",
       "side": "buy",
       "qty": 100000,
       "px": 50000000,
@@ -105,7 +105,7 @@ console.log('Quantity:', order.data.data.qty);
     </ResponseField>
     
     <ResponseField name="symbol" type="string">
-      Trading pair for this order
+      Trading symbol for this order
     </ResponseField>
     
     <ResponseField name="side" type="string">

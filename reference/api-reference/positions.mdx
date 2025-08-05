@@ -24,7 +24,7 @@ GET /v1/positions
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `symbol` | string | No | Filter by trading pair |
+| `symbol` | string | No | Filter by trading symbol |
 | `status` | string | No | Filter by position status: "open", "closed" |
 | `non_zero_only` | boolean | No | Only return positions with non-zero size |
 
@@ -272,7 +272,7 @@ GET /v1/positions/history
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `symbol` | string | No | Filter by trading pair |
+| `symbol` | string | No | Filter by trading symbol |
 | `start_time` | integer | No | Start timestamp (Unix milliseconds) |
 | `end_time` | integer | No | End timestamp (Unix milliseconds) |
 | `limit` | integer | No | Number of records (default: 100, max: 500) |

@@ -36,7 +36,7 @@ POST /v1/orders
 ### Request Body
 
 <ParamField body="symbol" type="string" required>
-  Trading pair symbol (e.g., "BTC-USD")
+  Trading symbol symbol (e.g., "BTC-USD")
 </ParamField>
 
 <ParamField body="side" type="string" required>
@@ -160,7 +160,7 @@ print(f"Order ID: {order['data']['order_id']}")
     </ResponseField>
     
     <ResponseField name="symbol" type="string">
-      Trading pair for this order
+      Trading symbol for this order
     </ResponseField>
     
     <ResponseField name="side" type="string">
@@ -268,7 +268,7 @@ GET /v1/orders
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `symbol` | string | No | Filter by trading pair |
+| `symbol` | string | No | Filter by trading symbol |
 | `status` | string | No | Filter by status: "NEW", "FILLED", "CANCELED", etc. |
 | `side` | string | No | Filter by side: "BUY" or "SELL" |
 | `start_time` | integer | No | Start timestamp (Unix milliseconds) |

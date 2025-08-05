@@ -1,12 +1,12 @@
 ---
 title: "Order Book Snapshot"
 api: "GET /api/v1/orderbook/snapshot"
-description: "Get current order book snapshot for trading pairs"
+description: "Get current order book snapshot for trading symbols"
 ---
 
 ## Get Order Book Snapshot
 
-Retrieve the current order book snapshot with bid and ask orders for a specific trading pair.
+Retrieve the current order book snapshot with bid and ask orders for a specific trading symbol.
 
 ### Endpoint
 ```http
@@ -16,7 +16,7 @@ GET /api/v1/orderbook/snapshot
 ### Parameters
 
 <ParamField query="symbol" type="string" required>
-  Trading pair symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
+  Trading symbol (e.g., "OIL-BTC", "GLD-BTC", "SP500-BTC", "US100-BTC")
 </ParamField>
 
 <ParamField query="instType" type="string" required>
@@ -31,7 +31,7 @@ GET /api/v1/orderbook/snapshot
 
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.roxom.com/api/v1/orderbook/snapshot?symbol=SP500-BTC&instType=perpetual&levels=50" \
+curl -X GET "https://api.roxom.com/api/v1/orderbook/snapshot?symbol=OIL-BTC&instType=perpetual&levels=50" \
   -H "Content-Type: application/json"
 ```
 
@@ -41,7 +41,7 @@ import requests
 response = requests.get(
     'https://api.roxom.com/api/v1/orderbook/snapshot',
     params={
-        'symbol': 'SP500-BTC',
+        'symbol': 'SP500',
         'instType': 'perpetual',
         'levels': 50
     }
@@ -70,7 +70,7 @@ console.log('Best ask:', orderbook.data.tradeable_pair.asks[0][0]);
   "data": {
     "tradeable_pair": {
       "symbol": "SP500-BTC",
-      "instrument_type": "perpetual",
+      "instType": "perpetual",
       "bids": [
         ["4500000", "25000000"],
         ["4499950", "50000000"],
@@ -93,11 +93,11 @@ console.log('Best ask:', orderbook.data.tradeable_pair.asks[0][0]);
 
   <Expandable title="Data properties">
     <ResponseField name="tradeable_pair" type="object">
-      Order book data for the requested trading pair
+      Order book data for the requested trading symbol
 
       <Expandable title="Tradeable pair properties">
         <ResponseField name="symbol" type="string">
-          Trading pair symbol that was requested
+          Trading symbol symbol that was requested
         </ResponseField>
         
         <ResponseField name="instrument_type" type="string">
@@ -151,10 +151,10 @@ console.log('Best ask:', orderbook.data.tradeable_pair.asks[0][0]);
 
 ## Available Symbols
 
-Currently supported trading pairs:
-- **SP500-BTC**: S&P 500 index futures denominated in Bitcoin
-- **GLD-BTC**: Gold futures denominated in Bitcoin  
-- **OIL-BTC**: Oil futures denominated in Bitcoin
+Currently supported trading symbols:
+- **SP500**: S&P 500 index futures denominated in Bitcoin
+- **GLD**: Gold futures denominated in Bitcoin  
+- **CL**: Oil futures denominated in Bitcoin
 
 <Tip>
   For real-time order book updates, use the WebSocket API which provides live depth streams for faster updates.
@@ -166,7 +166,7 @@ Currently supported trading pairs:
     icon="list"
     href="/api/api-reference/market-data/instruments"
   >
-    Get available trading pairs
+    Get available trading symbols
   </Card>
   <Card
     title="WebSocket Order Book"

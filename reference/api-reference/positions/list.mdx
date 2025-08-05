@@ -24,7 +24,7 @@ GET /api/v1/positions
 </ParamField>
 
 <ParamField query="symbol" type="string" required>
-  Trading pair symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
+  Trading symbol symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
 </ParamField>
 
 <ParamField query="units" type="string" default="sats">
@@ -53,7 +53,7 @@ response = requests.get(
     headers=headers,
     params={
         'instType': 'perpetual',
-        'symbol': 'SP500-BTC',
+        'symbol': 'SP500',
         'units': 'sats'
     }
 )
@@ -89,7 +89,7 @@ positions.data.forEach(position => {
     {
       "position_id": "01234567-89ab-7def-8123-456789abcdef",
       "instrument": "01234567-89ab-7def-8123-456789abcdea",
-      "symbol": "CL", 
+      "symbol": "OIL-BTC", 
       "is_buy": true,
       "entry_amount": 500000000000,
       "exit_amount": 0,
@@ -122,7 +122,7 @@ positions.data.forEach(position => {
     </ResponseField>
     
     <ResponseField name="symbol" type="string">
-      Trading symbol (e.g., "CL", "BTC")
+      Trading symbol (e.g., "OIL-BTC", "BTC")
     </ResponseField>
     
     <ResponseField name="is_buy" type="boolean">
