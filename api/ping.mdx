@@ -1,12 +1,12 @@
 ---
 title: "Ping"
 api: "GET /ping"
-description: "Simple health check endpoint"
+description: "Simple ping endpoint"
 ---
 
 ## Ping Endpoint
 
-A simple health check endpoint to verify API connectivity.
+A simple ping endpoint to verify API connectivity.
 
 ### Endpoint
 ```http
@@ -49,7 +49,7 @@ pong
 ## Use Cases
 
 <AccordionGroup>
-  <Accordion title="Health Monitoring">
+  <Accordion title="System Monitoring">
     Use this endpoint to verify that the API is responsive and available.
   </Accordion>
 
@@ -57,8 +57,8 @@ pong
     Test network connectivity and basic API accessibility before making authenticated requests.
   </Accordion>
 
-  <Accordion title="Load Balancer Health Checks">
-    Configure load balancers to use this endpoint for health checks.
+  <Accordion title="Load Balancer Ping Checks">
+    Configure load balancers to use this endpoint for connectivity checks.
   </Accordion>
 </AccordionGroup>
 

@@ -1,0 +1,63 @@
+---
+title: "Ping"
+description: "Monitor API availability and system status"
+---
+
+## Overview
+
+The Roxom API provides a simple ping endpoint to verify connectivity and check if the API is responsive.
+
+## Endpoint
+
+```http
+GET /ping
+```
+
+### Example Request
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.roxom.com/ping"
+```
+
+```python Python
+import requests
+
+response = requests.get('https://api.roxom.com/ping')
+print(response.text)  # "pong"
+```
+
+```javascript JavaScript
+fetch('https://api.roxom.com/ping')
+  .then(response => response.text())
+  .then(data => console.log(data)); // "pong"
+```
+</CodeGroup>
+
+### Response
+
+```text
+pong
+```
+
+## Use Cases
+
+- **Connectivity Testing**: Verify the API is accessible
+- **Load Balancer Checks**: Configure health checks for load balancers  
+- **System Monitoring**: Check API availability in monitoring systems
+- **Network Diagnostics**: Test basic network connectivity
+
+## Response Codes
+
+| Status Code | Description |
+|-------------|-------------|
+| `200` | API is operational and responsive |
+| `5xx` | API is experiencing issues |
+
+<Info>
+  This endpoint does not require authentication and always returns "pong" when the API is operational.
+</Info>
+
+## For More Details
+
+For complete API documentation on the ping endpoint, see the [API Reference](/api/ping).

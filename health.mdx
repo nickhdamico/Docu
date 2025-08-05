@@ -1,37 +1,37 @@
 ---
-title: "Health Check"
+title: "Ping"
 description: "Monitor API availability and system status"
 ---
 
 ## Overview
 
-The Roxom API provides health check endpoints to monitor system availability and performance. Use these endpoints to verify connectivity and check the operational status of various services.
+The Roxom API provides a ping endpoint to monitor system availability and performance. Use this endpoint to verify connectivity and check the operational status of various services.
 
-## Basic Health Check
+## Basic Ping
 
 ### Endpoint
 ```http
-GET /health
+GET /ping
 ```
 
 ### Example Request
 
 <CodeGroup>
 ```bash cURL
-curl -X GET "https://api.roxom.com/health" \
+curl -X GET "https://api.roxom.com/ping" \
   -H "Content-Type: application/json"
 ```
 
 ```python Python
 import requests
 
-response = requests.get('https://api.roxom.com/health')
-health_data = response.json()
-print(f"Status: {health_data['status']}")
+response = requests.get('https://api.roxom.com/ping')
+ping_response = response.text()
+print(f"Response: {ping_response}")
 ```
 
 ```javascript JavaScript
-fetch('https://api.roxom.com/health')
+fetch('https://api.roxom.com/ping')
   .then(response => response.json())
   .then(data => console.log('Status:', data.status));
 ```

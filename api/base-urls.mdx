@@ -90,31 +90,27 @@ const config = {
 };
 ```
 
-## Health Check
+## Ping
 
 Before integrating, verify that the API is accessible:
 
 ```bash
-curl -X GET "https://api.roxom.com/health" \
+curl -X GET "https://api.roxom.com/ping" \
   -H "Content-Type: application/json"
 ```
 
 Expected response:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "version": "1.0.0"
-}
+```text
+pong
 ```
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card
-    title="Health Check"
+    title="Ping"
     icon="heartbeat"
-    href="/health"
+    href="/ping"
   >
     Test API connectivity and monitor system status
   </Card>
