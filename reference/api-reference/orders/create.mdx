@@ -54,7 +54,7 @@ POST /api/v1/orders
 </ParamField>
 
 <ParamField body="unit" type="string" default="btc">
-  Price units: "sats" or "btc"
+  Price unit: "sats" or "btc"
 </ParamField>
 
 <ParamField body="cancelAt" type="integer">
@@ -152,7 +152,7 @@ const orderData = {
   qty: '100',
   px: '50000',
   timeInForce: 'gtc',
-  units: 'sats'
+  unit: 'sats'
 };
 
 const response = await fetch('https://api.roxom.com/api/v1/orders', {

@@ -28,7 +28,7 @@ GET /api/v1/orders
 </ParamField>
 
 <ParamField query="unit" type="string">
-  Display units: "sats" or "btc" (default: "sats")
+  Display unit: "sats" or "btc" (default: "sats")
 </ParamField>
 
 ### Example Requests
@@ -47,7 +47,7 @@ curl -X GET "https://api.roxom.com/api/v1/orders?instType=perpetual&symbol=SP500
 ```
 
 ```bash With BTC Units
-curl -X GET "https://api.roxom.com/api/v1/orders?instType=perpetual&units=btc" \
+curl -X GET "https://api.roxom.com/api/v1/orders?instType=perpetual&unit=btc" \
   -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -215,7 +215,7 @@ data.data.orders.forEach(order => {
         </ResponseField>
         
         <ResponseField name="unit" type="string">
-          Display units: "sats" or "btc"
+          Display unit: "sats" or "btc"
         </ResponseField>
       </Expandable>
     </ResponseField>
@@ -249,7 +249,7 @@ data.data.orders.forEach(order => {
     Get orders with quantities displayed in BTC:
     
     ```bash
-    GET /api/v1/orders?instType=perpetual&units=btc
+    GET /api/v1/orders?instType=perpetual&unit=btc
     ```
     
     **Use case**: Easier reading for Bitcoin-denominated quantities
