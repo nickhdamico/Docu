@@ -231,21 +231,17 @@
      "vscode"
    ]
   },
-  "footer": {
+    "footer": {
     "socials": {
       "github": "https://github.com/roxom"
     },
     "links": [
       {
-        "title": "Legal",
+        "title": "Company",
         "items": [
           {
-            "label": "Terms & Conditions",
-            "href": "https://www.roxom.com/terms"
-          },
-          {
-            "label": "Privacy Policy", 
-            "href": "https://www.roxom.com/privacy"
+            "label": "Legals",
+            "href": "https://docs.roxom.com/legals"
           }
         ]
       }
