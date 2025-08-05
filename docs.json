@@ -12,7 +12,7 @@
     "tabs": [
       {
         "tab": "API & WebSocket",
-        "href": "/api",
+        "href": "/api/index",
         "groups": [
           {
             "group": "Overview",
