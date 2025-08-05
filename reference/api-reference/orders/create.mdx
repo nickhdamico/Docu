@@ -53,7 +53,7 @@ POST /api/v1/orders
   Time in force: "gtc" (Good Till Canceled), "ioc" (Immediate or Cancel), "gtd" (Good Till Date)
 </ParamField>
 
-<ParamField body="units" type="string" default="btc">
+<ParamField body="unit" type="string" default="btc">
   Price units: "sats" or "btc"
 </ParamField>
 
@@ -78,7 +78,7 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
     "orderType": "market",
     "side": "buy",
     "qty": "100",
-    "units": "sats"
+    "unit": "sats"
   }'
 ```
 
@@ -94,7 +94,7 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
     "qty": "100",
     "px": "50000",
     "timeInForce": "gtc",
-    "units": "sats"
+    "unit": "sats"
   }'
 ```
 
@@ -111,7 +111,7 @@ curl -X POST "https://api.roxom.com/api/v1/orders" \
     "px": "49500",
     "triggerPx": "50000",
     "timeInForce": "gtc",
-    "units": "sats"
+    "unit": "sats"
   }'
 ```
 
@@ -130,7 +130,7 @@ order_data = {
     'orderType': 'market',
     'side': 'buy',
     'qty': '100',
-    'units': 'sats'
+    'unit': 'sats'
 }
 
 response = requests.post(

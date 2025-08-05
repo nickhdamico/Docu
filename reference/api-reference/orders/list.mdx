@@ -27,7 +27,7 @@ GET /api/v1/orders
   Filter by trading symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
 </ParamField>
 
-<ParamField query="units" type="string">
+<ParamField query="unit" type="string">
   Display units: "sats" or "btc" (default: "sats")
 </ParamField>
 
@@ -115,7 +115,7 @@ data.data.orders.forEach(order => {
         "expiration_time": null,
         "is_triggered": null,
         "remaining_quantity": "0.001",
-        "units": "sats"
+        "unit": "sats"
       },
       {
         "id": "01234567-89ab-7def-8123-456789abcdea",
@@ -134,7 +134,7 @@ data.data.orders.forEach(order => {
         "expiration_time": null,
         "is_triggered": null,
         "remaining_quantity": "0.000",
-        "units": "sats"
+        "unit": "sats"
       }
     ]
   }
@@ -214,7 +214,7 @@ data.data.orders.forEach(order => {
           Remaining quantity to be filled
         </ResponseField>
         
-        <ResponseField name="units" type="string">
+        <ResponseField name="unit" type="string">
           Display units: "sats" or "btc"
         </ResponseField>
       </Expandable>

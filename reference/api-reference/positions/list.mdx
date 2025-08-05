@@ -27,7 +27,7 @@ GET /api/v1/positions
   Trading symbol symbol (e.g., "SP500-BTC", "GLD-BTC", "OIL-BTC")
 </ParamField>
 
-<ParamField query="units" type="string" default="sats">
+<ParamField query="unit" type="string" default="sats">
   Unit format for values: "sats" or "btc"
 </ParamField>
 
@@ -54,7 +54,7 @@ response = requests.get(
     params={
         'instType': 'perpetual',
         'symbol': 'SP500',
-        'units': 'sats'
+        'unit': 'sats'
     }
 )
 
