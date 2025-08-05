@@ -12,64 +12,64 @@
     "tabs": [
       {
         "tab": "API & WebSocket",
-        "href": "/api/index",
+        "href": "/reference",
         "groups": [
           {
             "group": "Overview",
             "pages": [
-              "api/index"
+              "reference/index"
             ]
           },
           {
             "group": "Getting Started", 
             "pages": [
-              "api/authentication",
-              "api/base-urls", 
-              "api/decimal-format",
-              "api/ping"
+              "reference/authentication",
+              "reference/base-urls", 
+              "reference/decimal-format",
+              "reference/ping"
             ]
           },
 
           {
             "group": "Market Data",
             "pages": [
-              "api/api-reference/market-data/orderbook",
-              "api/api-reference/market-data/open-interest",
-              "api/api-reference/market-data/insurance-fund",
-              "api/api-reference/market-data/instruments",
-              "api/api-reference/market-data/calendars"
+              "reference/api-reference/market-data/orderbook",
+              "reference/api-reference/market-data/open-interest",
+              "reference/api-reference/market-data/insurance-fund",
+              "reference/api-reference/market-data/instruments",
+              "reference/api-reference/market-data/calendars"
             ]
           },
           {
             "group": "Order Management",
             "pages": [
-              "api/api-reference/orders/create",
-              "api/api-reference/orders/status",
-              "api/api-reference/orders/list",
-              "api/api-reference/orders/cancel",
-              "api/api-reference/orders/types"
+              "reference/api-reference/orders/create",
+              "reference/api-reference/orders/status",
+              "reference/api-reference/orders/list",
+              "reference/api-reference/orders/cancel",
+              "reference/api-reference/orders/types"
             ]
           },
           {
             "group": "Account & Portfolio",
             "pages": [
-              "api/api-reference/account/balances",
-              "api/api-reference/account/leverage"
+              "reference/api-reference/account/balances",
+              "reference/api-reference/account/leverage"
             ]
           },
           {
             "group": "Positions",
             "pages": [
-              "api/api-reference/positions/list"
+              "reference/api-reference/positions/list"
             ]
           },
           {
             "group": "WebSocket API",
             "pages": [
-              "api/websockets/overview",
-              "api/websockets/market-data",
-              "api/websockets/account-updates",
-              "api/websockets/connection"
+              "reference/websockets/overview",
+              "reference/websockets/market-data",
+              "reference/websockets/account-updates",
+              "reference/websockets/connection"
             ]
           }
         ]
@@ -231,6 +231,21 @@
   "footer": {
     "socials": {
       "github": "https://github.com/roxom"
-    }
+    },
+    "links": [
+      {
+        "title": "Legal",
+        "items": [
+          {
+            "label": "Terms & Conditions",
+            "href": "https://www.roxom.com/terms"
+          },
+          {
+            "label": "Privacy Policy", 
+            "href": "https://www.roxom.com/privacy"
+          }
+        ]
+      }
+    ]
   }
 }
