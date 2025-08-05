@@ -1,0 +1,311 @@
+---
+title: "Trading Instruments"
+api: "GET /api/v1/market/instruments"
+description: "Get information about available trading pairs and their specifications"
+---
+
+## Get Trading Instruments
+
+Retrieve information about all available trading instruments, including contract specifications and trading rules.
+
+### Endpoint
+```http
+GET /api/v1/market/instruments
+```
+
+### Parameters
+
+<ParamField query="symbol" type="string">
+  Filter for specific trading pair (e.g., "SP500-BTC"). If not provided, returns all instruments.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by trading status: "active", "suspended", "delisted"
+</ParamField>
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash All Instruments
+curl -X GET "https://api.roxom.com/api/v1/market/instruments" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```bash Single Instrument
+curl -X GET "https://api.roxom.com/api/v1/market/instruments?symbol=SP500-BTC" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+# Get all active instruments
+response = requests.get(
+    'https://api.roxom.com/api/v1/market/instruments',
+    headers=headers,
+    params={'status': 'active'}
+)
+
+instruments = response.json()
+for instrument in instruments['data']:
+    print(f"Symbol: {instrument['symbol']}")
+    print(f"Min order size: {instrument['min_order_size']} satoshis")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.roxom.com/api/v1/market/instruments?status=active', {
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  }
+});
+
+const instruments = await response.json();
+instruments.data.forEach(instrument => {
+  console.log(`${instrument.symbol}: ${instrument.description}`);
+});
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": [
+    {
+      "symbol": "SP500-BTC",
+      "base_asset": "SP500",
+      "quote_asset": "BTC",
+      "description": "S&P 500 Index futures settled in Bitcoin",
+      "status": "active",
+      "min_order_size": 100000,
+      "max_order_size": 100000000000,
+      "tick_size": 1,
+      "contract_size": 1,
+      "settlement_currency": "BTC",
+      "margin_requirement": 0.10,
+      "maker_fee": 0.0002,
+      "taker_fee": 0.0005,
+      "funding_interval": "8h",
+      "max_leverage": 10,
+      "trading_hours": {
+        "start": "00:00:00",
+        "end": "23:59:59",
+        "timezone": "UTC"
+      },
+      "launch_date": "2024-01-01T00:00:00Z",
+      "expiry_date": null
+    },
+    {
+      "symbol": "GLD-BTC",
+      "base_asset": "GLD",
+      "quote_asset": "BTC", 
+      "description": "Gold ETF futures settled in Bitcoin",
+      "status": "active",
+      "min_order_size": 50000,
+      "max_order_size": 50000000000,
+      "tick_size": 1,
+      "contract_size": 1,
+      "settlement_currency": "BTC",
+      "margin_requirement": 0.08,
+      "maker_fee": 0.0002,
+      "taker_fee": 0.0005,
+      "funding_interval": "8h",
+      "max_leverage": 12,
+      "trading_hours": {
+        "start": "00:00:00",
+        "end": "23:59:59",
+        "timezone": "UTC"
+      },
+      "launch_date": "2024-01-01T00:00:00Z",
+      "expiry_date": null
+    },
+    {
+      "symbol": "OIL-BTC",
+      "base_asset": "OIL",
+      "quote_asset": "BTC",
+      "description": "Crude Oil futures settled in Bitcoin",
+      "status": "active",
+      "min_order_size": 25000,
+      "max_order_size": 25000000000,
+      "tick_size": 1,
+      "contract_size": 1,
+      "settlement_currency": "BTC",
+      "margin_requirement": 0.12,
+      "maker_fee": 0.0003,
+      "taker_fee": 0.0006,
+      "funding_interval": "8h",
+      "max_leverage": 8,
+      "trading_hours": {
+        "start": "00:00:00",
+        "end": "23:59:59",
+        "timezone": "UTC"
+      },
+      "launch_date": "2024-01-01T00:00:00Z",
+      "expiry_date": null
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="array">
+  Array of trading instrument specifications
+
+  <Expandable title="Instrument properties">
+    <ResponseField name="symbol" type="string">
+      Unique trading pair identifier
+    </ResponseField>
+    
+    <ResponseField name="base_asset" type="string">
+      Base asset being traded (e.g., SP500, GLD, OIL)
+    </ResponseField>
+    
+    <ResponseField name="quote_asset" type="string">
+      Quote asset for pricing (always BTC)
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Human-readable description of the instrument
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Trading status: "active", "suspended", "delisted"
+    </ResponseField>
+    
+    <ResponseField name="min_order_size" type="integer">
+      Minimum order size in satoshis
+    </ResponseField>
+    
+    <ResponseField name="max_order_size" type="integer">
+      Maximum order size in satoshis
+    </ResponseField>
+    
+    <ResponseField name="tick_size" type="integer">
+      Minimum price increment in satoshis
+    </ResponseField>
+    
+    <ResponseField name="contract_size" type="number">
+      Size of one contract in base asset units
+    </ResponseField>
+    
+    <ResponseField name="settlement_currency" type="string">
+      Currency used for settlement (always BTC)
+    </ResponseField>
+    
+    <ResponseField name="margin_requirement" type="number">
+      Initial margin requirement as decimal (e.g., 0.10 = 10%)
+    </ResponseField>
+    
+    <ResponseField name="maker_fee" type="number">
+      Fee rate for maker orders as decimal
+    </ResponseField>
+    
+    <ResponseField name="taker_fee" type="number">
+      Fee rate for taker orders as decimal
+    </ResponseField>
+    
+    <ResponseField name="funding_interval" type="string">
+      Funding payment interval (e.g., "8h")
+    </ResponseField>
+    
+    <ResponseField name="max_leverage" type="integer">
+      Maximum allowed leverage for this instrument
+    </ResponseField>
+    
+    <ResponseField name="trading_hours" type="object">
+      Trading session times
+      
+      <Expandable title="Trading hours properties">
+        <ResponseField name="start" type="string">
+          Daily session start time (HH:mm:ss)
+        </ResponseField>
+        
+        <ResponseField name="end" type="string">
+          Daily session end time (HH:mm:ss)
+        </ResponseField>
+        
+        <ResponseField name="timezone" type="string">
+          Timezone for trading hours (always UTC)
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    
+    <ResponseField name="launch_date" type="string">
+      ISO 8601 date when instrument was launched
+    </ResponseField>
+    
+    <ResponseField name="expiry_date" type="string | null">
+      ISO 8601 expiry date (null for perpetual contracts)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Understanding Trading Instruments
+
+<AccordionGroup>
+  <Accordion title="Available Instruments">
+    Roxom currently offers three main trading instruments:
+    - **SP500-BTC**: S&P 500 Index futures
+    - **GLD-BTC**: Gold ETF futures  
+    - **OIL-BTC**: Crude Oil futures
+    
+    All instruments are settled in Bitcoin (BTC).
+  </Accordion>
+
+  <Accordion title="Contract Specifications">
+    - **Perpetual Contracts**: No expiry date, trade indefinitely
+    - **Bitcoin Settlement**: All profits/losses in BTC
+    - **Funding Payments**: Every 8 hours to maintain price peg
+    - **24/7 Trading**: Continuous trading with no market close
+  </Accordion>
+
+  <Accordion title="Size and Pricing">
+    - **Minimum Sizes**: Vary by instrument for optimal liquidity
+    - **Tick Sizes**: 1 satoshi minimum price increment
+    - **Leverage**: Up to 12x depending on instrument
+    - **Margin**: Initial margin requirements 8-12%
+  </Accordion>
+
+  <Accordion title="Fee Structure">
+    - **Maker Fees**: 0.02-0.03% for adding liquidity
+    - **Taker Fees**: 0.05-0.06% for removing liquidity
+    - **Funding Fees**: Variable based on market conditions
+    - **No Hidden Fees**: Transparent fee structure
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Use this endpoint to check current trading rules and specifications before placing orders, as parameters may be updated periodically.
+</Tip>
+
+<CardGroup cols={2}>
+  <Card
+    title="Order Book"
+    icon="layer-group"
+    href="/api/api-reference/market-data/orderbook"
+  >
+    Current market depth
+  </Card>
+  <Card
+    title="Trading Calendars"
+    icon="calendar"
+    href="/api/api-reference/market-data/calendars"
+  >
+    Trading schedule information
+  </Card>
+</CardGroup>

@@ -9,69 +9,203 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Overview",
-        "pages": [
-          "index"
+        "tab": "API & WebSocket",
+        "href": "/api",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/index"
+            ]
+          },
+          {
+            "group": "Getting Started", 
+            "pages": [
+              "api/authentication",
+              "api/base-urls", 
+              "api/decimal-format",
+              "api/ping"
+            ]
+          },
+          {
+            "group": "REST API",
+            "pages": [
+              "api/api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Market Data",
+            "pages": [
+              "api/api-reference/market-data/orderbook",
+              "api/api-reference/market-data/open-interest",
+              "api/api-reference/market-data/insurance-fund",
+              "api/api-reference/market-data/instruments",
+              "api/api-reference/market-data/calendars"
+            ]
+          },
+          {
+            "group": "Order Management",
+            "pages": [
+              "api/api-reference/orders/create",
+              "api/api-reference/orders/status",
+              "api/api-reference/orders/list",
+              "api/api-reference/orders/cancel",
+              "api/api-reference/orders/types"
+            ]
+          },
+          {
+            "group": "Account & Portfolio",
+            "pages": [
+              "api/api-reference/account/balances",
+              "api/api-reference/account/leverage"
+            ]
+          },
+          {
+            "group": "Positions",
+            "pages": [
+              "api/api-reference/positions/list"
+            ]
+          },
+          {
+            "group": "WebSocket API",
+            "pages": [
+              "api/websockets/overview",
+              "api/websockets/market-data",
+              "api/websockets/account-updates",
+              "api/websockets/connection"
+            ]
+          }
         ]
       },
       {
-        "group": "Getting Started",
-        "pages": [
-          "authentication",
-          "base-urls",
-          "decimal-format",
-          "health"
-        ]
-      },
-      {
-        "group": "REST API",
-        "pages": [
-          "api-reference/introduction"
-        ]
-      },
-      {
-        "group": "Market Data",
-        "pages": [
-          "api-reference/market-data/prices",
-          "api-reference/market-data/orderbook",
-          "api-reference/market-data/statistics",
-          "api-reference/market-data/historical",
-          "api-reference/market-data/symbols"
-        ]
-      },
-      {
-        "group": "Order Management",
-        "pages": [
-          "api-reference/orders/create",
-          "api-reference/orders/status",
-          "api-reference/orders/list",
-          "api-reference/orders/cancel",
-          "api-reference/orders/types"
-        ]
-      },
-      {
-        "group": "Account & Portfolio",
-        "pages": [
-          "api-reference/account/info",
-          "api-reference/account/balances",
-          "api-reference/account/leverage"
-        ]
-      },
-      {
-        "group": "Positions",
-        "pages": [
-          "api-reference/positions/list"
-        ]
-      },
-      {
-        "group": "WebSocket API",
-        "pages": [
-          "websockets/overview",
-          "websockets/market-data",
-          "websockets/account-updates",
-          "websockets/connection"
+        "tab": "Rulebook",
+        "href": "/rulebook",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "rulebook/index"
+            ]
+          },
+          {
+            "group": "Introduction",
+            "pages": [
+              "rulebook/about-roxom"
+            ]
+          },
+          {
+            "group": "Key Concepts",
+            "pages": [
+              "rulebook/key-concepts/accounts-and-wallets",
+              "rulebook/key-concepts/pricing-and-indexes",
+              "rulebook/key-concepts/margin-and-risk",
+              "rulebook/key-concepts/funding-and-insurance",
+              "rulebook/key-concepts/orders-and-execution"
+            ]
+          },
+          {
+            "group": "Contract Specs Shared",
+            "pages": [
+              "rulebook/key-contract-specs-shared/bitcoin-denomination-and-contracts",
+              "rulebook/key-contract-specs-shared/pricing-and-leverage",
+              "rulebook/key-contract-specs-shared/funding-and-settlement"
+            ]
+          },
+          {
+            "group": "Our Contracts",
+            "pages": [
+              "rulebook/our-contracts-offering-and-specs/gold-btc",
+              "rulebook/our-contracts-offering-and-specs/us500-btc",
+              "rulebook/our-contracts-offering-and-specs/oil-btc",
+              "rulebook/our-contracts-offering-and-specs/us100-btc"
+            ]
+          },
+          {
+            "group": "Trading Hours",
+            "pages": [
+              "rulebook/trading-hours/trading-hours-logic",
+              "rulebook/trading-hours/behavior-during-closed-hours-for-closed-hours-instruments",
+              "rulebook/trading-hours/reopening-after-closure-for-closed-hours-instruments"
+            ]
+          },
+          {
+            "group": "Order Types",
+            "pages": [
+              "rulebook/order-types-and-execution-rules/limit-order",
+              "rulebook/order-types-and-execution-rules/market-order",
+              "rulebook/order-types-and-execution-rules/stop-market-order",
+              "rulebook/order-types-and-execution-rules/stop-limit-order"
+            ]
+          },
+          {
+            "group": "Trading Fees",
+            "pages": [
+              "rulebook/trading-fees-and-programs/overview",
+              "rulebook/tiered-fee-table",
+              "rulebook/market-maker-program"
+            ]
+          },
+          {
+            "group": "Matching Engine",
+            "pages": [
+              "rulebook/matching-engine-rules/price-time-priority",
+              "rulebook/matching-engine-rules/order-matching-engine",
+              "rulebook/matching-engine-rules/self-trade-prevention"
+            ]
+          },
+          {
+            "group": "Margin Rules",
+            "pages": [
+              "rulebook/margin-rules/initial-and-maintenance-margin",
+              "rulebook/margin-rules/margin-ratio-and-risk-management",
+              "rulebook/margin-rules/isolated-margin-mode",
+              "rulebook/margin-rules/mark-price-and-p-and-l-settlement"
+            ]
+          },
+          {
+            "group": "Funding Payments",
+            "pages": [
+              "rulebook/funding-payments/funding-interval-and-timing",
+              "rulebook/funding-payments/funding-rate-calculation",
+              "rulebook/funding-payments/funding-payment-calculation"
+            ]
+          },
+          {
+            "group": "Liquidation Mechanics",
+            "pages": [
+              "rulebook/liquidation-mechanics/liquidation-triggers-and-overview",
+              "rulebook/liquidation-mechanics/liquidation-process-steps",
+              "rulebook/liquidation-mechanics/execution-pricing-and-bankruptcy"
+            ]
+          },
+          {
+            "group": "Insurance Fund",
+            "pages": [
+              "rulebook/insurance-fund/insurance-fund-overview",
+              "rulebook/insurance-fund/insurance-fund-sources-and-growth",
+              "rulebook/insurance-fund/insurance-fund-operations"
+            ]
+          },
+          {
+            "group": "Auto-Deleveraging ADL",
+            "pages": [
+              "rulebook/auto-deleveraging-adl/adl-overview-and-triggers",
+              "rulebook/auto-deleveraging-adl/adl-ranking-algorithm",
+              "rulebook/auto-deleveraging-adl/adl-execution-process",
+              "rulebook/auto-deleveraging-adl/effect-on-affected-traders"
+            ]
+          },
+          {
+            "group": "Risk Controls",
+            "pages": [
+              "rulebook/risk-controls/pre-trade-order-controls",
+              "rulebook/risk-controls/position-and-open-interest-limits",
+              "rulebook/risk-controls/circuit-breakers-and-trading-halts",
+              "rulebook/risk-controls/post-trade-risk-management"
+            ]
+          }
         ]
       }
     ]

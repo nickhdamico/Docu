@@ -1,0 +1,18 @@
+---
+description: >-
+  Here we define how Roxom calculates fair prices and how each contract's Underlying Asset is sourced, then combined with BTC/USDT data to produce our BTC Denominated Index Price.
+---
+
+# Pricing & Indexes
+
+### **Perpetual Futures Contract**
+
+A futures contract with no expiration date, which references an underlying asset's price. Roxom's perpetuals are **linear contracts** quoted in BTC (price of the asset in BTC) and settled in BTC. Traders can hold positions indefinitely, subject to margin requirements and funding payments.
+
+### **Underlying Asset and Index Price**
+
+Each contract has an underlying reference (e.g. PAX Gold (PAXG), United States Oil Fund (USO), SPDR S\&P 500 ETF Trust (SPY), Invesco QQQ Trust (QQQ)). Roxom uses a **composite Index Price** for each underlying, sourced from major market data feeds, to serve as a fair reference. This Index Price (in USD) is combined with the BTC/USDT price to determine a **fair price in BTC** for the contract. _(For each exact underlying asset and Index Price, please visit_ [_Our Contracts Offering and Specs_](../our-contracts-offering-and-specs)_)._
+
+### **Mark Price**
+
+The fair price used for margining, funding‐rate calculations, and liquidations, derived from a combination of the underlying's composite index (sourced via Databento) and Roxom's own order‐book data. For 24/7 contracts, the Mark Price updates continuously as new index quotes and order‐book information arrive; for market‐hours contracts, the Mark Price "freezes" outside the defined trading window (using the last valid index value) to prevent gap risk. All unrealized P\&L, margin requirements, and liquidation triggers reference this Mark Price—rather than the last traded price—to guard against anomalous trades or manipulation, and liquidations are suspended if the underlying index feed becomes stale or falls outside its regular trading hours.

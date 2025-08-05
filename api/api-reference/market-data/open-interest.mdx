@@ -1,0 +1,191 @@
+---
+title: "Open Interest"
+api: "GET /api/v1/market/open-interest"
+description: "Get current open interest data for futures contracts"
+---
+
+## Get Open Interest
+
+Retrieve current open interest information for all trading instruments or a specific symbol.
+
+### Endpoint
+```http
+GET /api/v1/market/open-interest
+```
+
+### Parameters
+
+<ParamField query="symbol" type="string">
+  Trading pair symbol to filter (e.g., "SP500-BTC"). If not provided, returns data for all symbols.
+</ParamField>
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash All Symbols
+curl -X GET "https://api.roxom.com/api/v1/market/open-interest" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```bash Single Symbol
+curl -X GET "https://api.roxom.com/api/v1/market/open-interest?symbol=SP500-BTC" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+# Get open interest for all symbols
+response = requests.get(
+    'https://api.roxom.com/api/v1/market/open-interest',
+    headers=headers
+)
+
+# Get open interest for specific symbol
+response_btc = requests.get(
+    'https://api.roxom.com/api/v1/market/open-interest',
+    headers=headers,
+    params={'symbol': 'SP500-BTC'}
+)
+
+open_interest = response.json()
+print(f"Total open interest: {open_interest['data']}")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.roxom.com/api/v1/market/open-interest', {
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  }
+});
+
+const openInterest = await response.json();
+console.log('Open interest data:', openInterest.data);
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json All Symbols
+{
+  "data": [
+    {
+      "symbol": "SP500-BTC",
+      "open_interest": 12500000000,
+      "open_interest_usd": 562500.00,
+      "timestamp": "2024-01-15T10:30:00Z"
+    },
+    {
+      "symbol": "GLD-BTC", 
+      "open_interest": 850000000,
+      "open_interest_usd": 38250.00,
+      "timestamp": "2024-01-15T10:30:00Z"
+    },
+    {
+      "symbol": "OIL-BTC",
+      "open_interest": 2100000000,
+      "open_interest_usd": 94500.00,
+      "timestamp": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+
+```json Single Symbol
+{
+  "data": {
+    "symbol": "SP500-BTC",
+    "open_interest": 12500000000,
+    "open_interest_usd": 562500.00,
+    "timestamp": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc124"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object | array">
+  Open interest data (array for all symbols, object for single symbol)
+
+  <Expandable title="Open interest properties">
+    <ResponseField name="symbol" type="string">
+      Trading pair symbol
+    </ResponseField>
+    
+    <ResponseField name="open_interest" type="integer">
+      Total open interest in satoshis
+    </ResponseField>
+    
+    <ResponseField name="open_interest_usd" type="number">
+      Open interest value in USD equivalent
+    </ResponseField>
+    
+    <ResponseField name="timestamp" type="string">
+      ISO 8601 timestamp when data was calculated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Understanding Open Interest
+
+<AccordionGroup>
+  <Accordion title="What is Open Interest?">
+    Open interest represents the total number of outstanding futures contracts that have not been settled. It's a measure of market activity and liquidity.
+  </Accordion>
+
+  <Accordion title="Open Interest vs Volume">
+    - **Open Interest**: Total outstanding contracts
+    - **Volume**: Number of contracts traded in a period
+    - **Relationship**: High open interest with high volume indicates strong market conviction
+  </Accordion>
+
+  <Accordion title="Market Implications">
+    - **Rising OI + Rising Price**: Bullish sentiment, new money entering long positions
+    - **Rising OI + Falling Price**: Bearish sentiment, new money entering short positions
+    - **Falling OI + Rising Price**: Short covering, potentially less sustainable moves
+    - **Falling OI + Falling Price**: Long liquidation, potentially less sustainable moves
+  </Accordion>
+
+  <Accordion title="Value Calculations">
+    - **Satoshi Format**: All values in smallest Bitcoin unit (1 BTC = 100,000,000 satoshis)
+    - **USD Equivalent**: Calculated using current BTC/USD exchange rate
+    - **Updates**: Refreshed every 15 minutes during market hours
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+Open interest data is updated every 15 minutes during active trading hours and represents the state at the end of the last settlement period.
+</Info>
+
+<CardGroup cols={2}>
+  <Card
+    title="Order Book"
+    icon="layer-group"
+    href="/api/api-reference/market-data/orderbook"
+  >
+    Current market depth
+  </Card>
+  <Card
+    title="Trading Instruments"
+    icon="list"
+    href="/api/api-reference/market-data/instruments"
+  >
+    Available trading pairs
+  </Card>
+</CardGroup>

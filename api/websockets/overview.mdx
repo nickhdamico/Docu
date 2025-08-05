@@ -1,0 +1,229 @@
+---
+title: "WebSocket Overview"
+description: "Introduction to Roxom's real-time WebSocket API"
+---
+
+## Overview
+
+The Roxom WebSocket API provides real-time access to market data and account updates with minimal latency. Perfect for building trading applications, monitoring portfolios, and implementing algorithmic trading strategies.
+
+### What You Can Access
+
+<AccordionGroup>
+  <Accordion title="Public Market Data">
+    **No authentication required** for public market data streams:
+    
+    - **Level 1 Quotes**: Best bid/ask prices and quantities
+    - **Trade Executions**: Real-time trade data with volume statistics  
+    - **Order Book Depth**: Complete order book with multiple price levels
+    - **24hr Statistics**: Rolling statistics and price changes
+  </Accordion>
+
+  <Accordion title="Private Account Data">
+    **Authentication required** for private account streams:
+    
+    - **Order Updates**: Real-time order status changes and fills
+    - **Balance Changes**: Account balance updates from trades and transfers
+    - **Position Updates**: Position changes and PnL updates
+    - **Account Status**: Account-level notifications and alerts
+  </Accordion>
+</AccordionGroup>
+
+### Connection URLs
+
+<CodeGroup>
+```http Production
+wss://ws.roxom.com/ws
+```
+
+```http Sandbox
+wss://ws.roxom.io/ws
+```
+</CodeGroup>
+
+<Warning>
+  Use the sandbox environment for testing and development. Production credentials will not work with sandbox endpoints.
+</Warning>
+
+## Supported Trading Pairs
+
+Current supported symbols for market data streams:
+
+| Symbol | Description | Base Asset | Quote Asset |
+|--------|-------------|------------|-------------|
+| `SP500-BTC` | S&P 500 Index to Bitcoin | SP500 | BTC |
+| `GLD-BTC` | Gold to Bitcoin | GLD | BTC |
+| `OIL-BTC` | Oil to Bitcoin | OIL | BTC |
+
+## Message Format
+
+All WebSocket messages use JSON format with a consistent structure:
+
+### Client to Server Messages
+```json
+{
+  "op": "subscribe|unsubscribe",
+  "args": [
+    {
+      "channel": "channel_name",
+      "symbol": "trading_pair"
+    }
+  ]
+}
+```
+
+### Server to Client Messages
+```json
+{
+  "topic": "channel.symbol",
+  "type": "snapshot|delta|update",
+  "createdTime": 1640995200000000000,
+  "data": {
+    // Channel-specific data
+  }
+}
+```
+
+## Connection Lifecycle
+
+<Steps>
+<Step title="Establish Connection">
+  Connect to the WebSocket endpoint using your preferred WebSocket library.
+  
+  ```javascript
+  const ws = new WebSocket('wss://api.roxom.com/ws');
+  ```
+</Step>
+
+<Step title="Authenticate (Optional)">
+  For private streams, authenticate using API headers during connection.
+  
+  ```javascript
+  const ws = new WebSocket('wss://api.roxom.com/ws', [], {
+    headers: {
+      'X-API-KEY': 'your-api-key',
+      'X-API-TIMESTAMP': Date.now().toString()
+    }
+  });
+  ```
+</Step>
+
+<Step title="Subscribe to Channels">
+  Send subscription messages for the data streams you need.
+  
+  ```json
+  {
+    "op": "subscribe",
+    "args": [
+      { "channel": "level1", "symbol": "BTC-USD" }
+    ]
+  }
+  ```
+</Step>
+
+<Step title="Handle Messages">
+  Process incoming real-time data and maintain connection health.
+  
+  ```javascript
+  ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('Received:', data);
+  };
+  ```
+</Step>
+
+<Step title="Maintain Connection">
+  Implement ping/pong and reconnection logic for reliability.
+  
+  <Tip>
+    Send ping frames every 30 seconds to keep the connection alive.
+  </Tip>
+</Step>
+</Steps>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Low Latency"
+    icon="bolt"
+  >
+    Sub-millisecond message delivery for time-sensitive trading applications
+  </Card>
+  <Card
+    title="Multiple Streams"
+    icon="stream"
+  >
+    Subscribe to multiple symbols and channels simultaneously
+  </Card>
+  <Card
+    title="Reliable Delivery"
+    icon="shield-check"
+  >
+    Built-in heartbeat and reconnection mechanisms
+  </Card>
+  <Card
+    title="Efficient Updates"
+    icon="arrows-rotate"
+  >
+    Delta updates minimize bandwidth usage for order book streams
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Connection Management">
+    - **Single Connection**: Use one connection per application when possible
+    - **Reconnection Logic**: Implement exponential backoff for reconnections
+    - **Heartbeat Monitoring**: Send ping frames every 30 seconds
+    - **Resource Cleanup**: Properly close connections when shutting down
+  </Accordion>
+
+  <Accordion title="Subscription Management">
+    - **Selective Subscriptions**: Only subscribe to data you actually need
+    - **Unsubscribe Unused**: Remove subscriptions you no longer need
+    - **Batch Operations**: Subscribe to multiple channels in single message
+    - **Symbol Validation**: Verify symbol names before subscribing
+  </Accordion>
+
+  <Accordion title="Error Handling">
+    - **Graceful Degradation**: Handle connection drops gracefully
+    - **Error Parsing**: Always validate JSON before parsing
+    - **Retry Logic**: Implement smart retry mechanisms
+    - **Logging**: Log connection events for debugging
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card
+    title="Connection Setup"
+    icon="plug"
+    href="/websockets/connection"
+  >
+    Learn how to establish and maintain WebSocket connections
+  </Card>
+  <Card
+    title="Market Data Streams"
+    icon="chart-line"
+    href="/websockets/market-data"
+  >
+    Subscribe to real-time market data feeds
+  </Card>
+  <Card
+    title="Account Updates"
+    icon="user"
+    href="/websockets/account-updates"
+  >
+    Receive real-time account and order updates
+  </Card>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/authentication"
+  >
+    Set up API authentication for private streams
+  </Card>
+</CardGroup>

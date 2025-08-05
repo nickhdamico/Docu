@@ -1,0 +1,16 @@
+---
+description: >-
+  You'll see how the Funding Rate is calculated and settled every interval, and
+  how the Insurance Fund absorbs any liquidation shortfalls so profitable
+  traders always get paid in full.
+---
+
+# Funding & Insurance
+
+### **Funding Rate/Funding Payments**
+
+The periodic payment exchanged between long and short position holders is by default every 8 hours, but may vary by instrument _(see_ [_our contracts offering & specs_ ](../our-contracts-offering-and-specs)_for specifics of each contract)_. Funding keeps the perpetual's price tethered to the underlying's index price. If the perpetual is trading above the index (premium), longs pay shorts; if below (discount), shorts pay longs. Traders only pay or receive funding if they hold a position at the funding timestamp.
+
+### **Insurance Fund**
+
+A reserve pool (denominated in BTC) maintained by the exchange to cover losses when liquidations occur below the bankruptcy price (i.e. trader losses exceed their collateral). It is built up by contributions from the exchange and from profitable liquidation events _(see_ [_Insurance Fund_](../insurance-fund) _for detailed information about hour our insurance fund works)._

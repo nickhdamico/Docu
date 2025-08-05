@@ -1,0 +1,490 @@
+---
+title: "Orders"
+description: "Create and manage trading orders"
+---
+
+## Overview
+
+The Orders API allows you to create, modify, cancel, and query trading orders. All order operations require authentication and are subject to risk management controls.
+
+## Order Types
+
+Roxom supports several order types:
+
+| Type | Description |
+|------|-------------|
+| **MARKET** | Execute immediately at current market price |
+| **LIMIT** | Execute only at specified price or better |
+| **STOP** | Market order triggered when stop price is reached |
+| **STOP_LIMIT** | Limit order triggered when stop price is reached |
+
+## Create Order
+
+Place a new trading order.
+
+### Endpoint
+```http
+POST /v1/orders
+```
+
+### Parameters
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token for API authentication. Format: `Bearer YOUR_API_KEY`
+</ParamField>
+
+### Request Body
+
+<ParamField body="symbol" type="string" required>
+  Trading pair symbol (e.g., "BTC-USD")
+</ParamField>
+
+<ParamField body="side" type="string" required>
+  Order side: "BUY" or "SELL"
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+</ParamField>
+
+<ParamField body="quantity" type="string" required>
+  Order quantity with 8 decimal precision
+</ParamField>
+
+<ParamField body="price" type="string">
+  Order price (required for LIMIT and STOP_LIMIT orders)
+</ParamField>
+
+<ParamField body="stop_price" type="string">
+  Stop trigger price (required for STOP and STOP_LIMIT orders)
+</ParamField>
+
+<ParamField body="time_in_force" type="string" default="GTC">
+  Time in force: "GTC" (Good Till Canceled), "IOC" (Immediate or Cancel), "FOK" (Fill or Kill)
+</ParamField>
+
+<ParamField body="client_order_id" type="string">
+  Client-specified order identifier for tracking
+</ParamField>
+
+### Example Requests
+
+<RequestExample>
+```bash Market Order
+curl -X POST "https://api.roxom.com/v1/orders" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "MARKET",
+    "quantity": "0.01000000"
+  }'
+```
+
+```bash Limit Order
+curl -X POST "https://api.roxom.com/v1/orders" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "LIMIT",
+    "quantity": "0.01000000",
+    "price": "45000.00000000",
+    "time_in_force": "GTC"
+  }'
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+order_data = {
+    'symbol': 'BTC-USD',
+    'side': 'BUY',
+    'type': 'LIMIT',
+    'quantity': '0.01000000',
+    'price': '45000.00000000'
+}
+
+response = requests.post(
+    'https://api.roxom.com/v1/orders',
+    headers=headers,
+    json=order_data
+)
+
+order = response.json()
+print(f"Order ID: {order['data']['order_id']}")
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "order_id": "order_abc123",
+    "client_order_id": "my_order_001",
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "LIMIT",
+    "quantity": "0.01000000",
+    "price": "45000.00000000",
+    "status": "NEW",
+    "time_in_force": "GTC",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Created order details
+
+  <Expandable title="Order properties">
+    <ResponseField name="order_id" type="string">
+      Unique system-generated order identifier
+    </ResponseField>
+    
+    <ResponseField name="client_order_id" type="string">
+      Client-provided order identifier (if specified)
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading pair for this order
+    </ResponseField>
+    
+    <ResponseField name="side" type="string">
+      Order side: "BUY" or "SELL"
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Order type: "MARKET", "LIMIT", "STOP", "STOP_LIMIT"
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="string">
+      Total order quantity
+    </ResponseField>
+    
+    <ResponseField name="price" type="string">
+      Order price (for limit orders)
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Current order status: "NEW", "PENDING", "PARTIALLY_FILLED", "FILLED", "CANCELED", "REJECTED", "EXPIRED"
+    </ResponseField>
+    
+    <ResponseField name="time_in_force" type="string">
+      Time in force setting for this order
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp when order was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp when order was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp when response was generated
+</ResponseField>
+
+<ResponseField name="request_id" type="string">
+  Unique identifier for this API request
+</ResponseField>
+
+## Get Order Status
+
+Retrieve status and details of a specific order.
+
+### Endpoint
+```http
+GET /v1/orders/{order_id}
+```
+
+### Example Request
+
+```bash
+curl -X GET "https://api.roxom.io/v1/orders/order_abc123" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "order_id": "order_abc123",
+    "client_order_id": "my_order_001",
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "LIMIT",
+    "quantity": "0.01000000",
+    "price": "45000.00000000",
+    "status": "PARTIALLY_FILLED",
+    "filled_quantity": "0.00500000",
+    "remaining_quantity": "0.00500000",
+    "executed_price": "45000.00000000",
+    "time_in_force": "GTC",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:32:00Z",
+    "fills": [
+      {
+        "fill_id": "fill_xyz789",
+        "quantity": "0.00500000",
+        "price": "45000.00000000",
+        "fee": "0.00000050",
+        "fee_asset": "BTC",
+        "timestamp": "2024-01-15T10:32:00Z"
+      }
+    ]
+  }
+}
+```
+
+## List Orders
+
+Retrieve all orders for your account with optional filtering.
+
+### Endpoint
+```http
+GET /v1/orders
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `symbol` | string | No | Filter by trading pair |
+| `status` | string | No | Filter by status: "NEW", "FILLED", "CANCELED", etc. |
+| `side` | string | No | Filter by side: "BUY" or "SELL" |
+| `start_time` | integer | No | Start timestamp (Unix milliseconds) |
+| `end_time` | integer | No | End timestamp (Unix milliseconds) |
+| `limit` | integer | No | Number of orders (default: 100, max: 500) |
+| `cursor` | string | No | Pagination cursor |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.roxom.io/v1/orders?symbol=BTC-USD&status=NEW&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "order_id": "order_abc123",
+      "symbol": "BTC-USD",
+      "side": "BUY",
+      "type": "LIMIT",
+      "quantity": "0.01000000",
+      "price": "45000.00000000",
+      "status": "NEW",
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "next_cursor": "eyJ0aW1lc3RhbXAiOiIyMDI0LTAxLTE1VDEwOjMwOjAwWiJ9",
+    "has_more": true,
+    "limit": 10
+  }
+}
+```
+
+## Cancel Order
+
+Cancel an existing order.
+
+### Endpoint
+```http
+DELETE /v1/orders/{order_id}
+```
+
+### Example Request
+
+<CodeGroup>
+```bash Cancel by Order ID
+curl -X DELETE "https://api.roxom.io/v1/orders/order_abc123" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+response = requests.delete(
+    'https://api.roxom.io/v1/orders/order_abc123',
+    headers=headers
+)
+
+result = response.json()
+print(f"Order status: {result['data']['status']}")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "data": {
+    "order_id": "order_abc123",
+    "status": "CANCELED",
+    "canceled_at": "2024-01-15T10:35:00Z"
+  },
+  "timestamp": "2024-01-15T10:35:00Z",
+  "request_id": "req_def456"
+}
+```
+
+## Cancel All Orders
+
+Cancel all open orders for a symbol or all symbols.
+
+### Endpoint
+```http
+DELETE /v1/orders
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `symbol` | string | No | Cancel orders for specific symbol only |
+
+### Example Request
+
+```bash
+curl -X DELETE "https://api.roxom.io/v1/orders?symbol=BTC-USD" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "canceled_orders": [
+      {
+        "order_id": "order_abc123",
+        "status": "CANCELED"
+      },
+      {
+        "order_id": "order_def456", 
+        "status": "CANCELED"
+      }
+    ],
+    "total_canceled": 2
+  }
+}
+```
+
+## Order Status Values
+
+| Status | Description |
+|--------|-------------|
+| `NEW` | Order is accepted but not yet in the order book |
+| `PENDING` | Order is in the order book waiting for execution |
+| `PARTIALLY_FILLED` | Order is partially executed |
+| `FILLED` | Order is completely executed |
+| `CANCELED` | Order was canceled |
+| `REJECTED` | Order was rejected due to validation errors |
+| `EXPIRED` | Order expired (for time-limited orders) |
+
+## Time in Force
+
+| Value | Description |
+|-------|-------------|
+| `GTC` | Good Till Canceled - remains active until filled or canceled |
+| `IOC` | Immediate or Cancel - execute immediately, cancel remainder |
+| `FOK` | Fill or Kill - execute completely or cancel entirely |
+
+## Error Handling
+
+Common error scenarios:
+
+### Insufficient Balance
+
+```json
+{
+  "error": {
+    "code": 400,
+    "message": "Insufficient balance",
+    "details": "Available balance: 0.005 BTC, required: 0.01 BTC"
+  }
+}
+```
+
+### Invalid Price
+
+```json
+{
+  "error": {
+    "code": 400,
+    "message": "Price outside allowed range",
+    "details": "Price must be between 40000.00 and 50000.00"
+  }
+}
+```
+
+### Order Not Found
+
+```json
+{
+  "error": {
+    "code": 404,
+    "message": "Order not found",
+    "details": "Order 'order_invalid' does not exist"
+  }
+}
+```
+
+## Risk Management
+
+Orders are subject to various risk management controls:
+
+- **Position limits**: Maximum position size per symbol
+- **Order size limits**: Minimum and maximum order quantities
+- **Price bands**: Orders must be within allowed price ranges
+
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Account API"
+    icon="user"
+    href="/api-reference/account"
+  >
+    Check your account balance before placing orders
+  </Card>
+  <Card
+    title="Positions API"
+    icon="briefcase"
+    href="/api-reference/positions"
+  >
+    Monitor your trading positions
+  </Card>
+</CardGroup>

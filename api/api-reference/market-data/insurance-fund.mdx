@@ -1,0 +1,174 @@
+---
+title: "Insurance Fund"
+api: "GET /api/v1/market/insurance-fund"
+description: "Get current insurance fund balance and information"
+---
+
+## Get Insurance Fund Balance
+
+Retrieve the current insurance fund balance and related information for risk management.
+
+### Endpoint
+```http
+GET /api/v1/market/insurance-fund
+```
+
+### Parameters
+
+<ParamField header="X-API-Key" type="string" required>
+  API key for authentication
+</ParamField>
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/api/v1/market/insurance-fund" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'https://api.roxom.com/api/v1/market/insurance-fund',
+    headers=headers
+)
+
+insurance_fund = response.json()
+print(f"Insurance fund balance: {insurance_fund['data']['balance_satoshis']} satoshis")
+print(f"USD equivalent: ${insurance_fund['data']['balance_usd']:,.2f}")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.roxom.com/api/v1/market/insurance-fund', {
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  }
+});
+
+const insuranceFund = await response.json();
+console.log('Insurance fund balance:', insuranceFund.data.balance_satoshis, 'satoshis');
+console.log('USD equivalent: $', insuranceFund.data.balance_usd.toLocaleString());
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```json Success
+{
+  "data": {
+    "balance_satoshis": 15000000000,
+    "balance_usd": 675000.00,
+    "balance_btc": 1.5,
+    "last_updated": "2024-01-15T10:30:00Z",
+    "contribution_rate": 0.0005,
+    "utilization_rate": 0.12,
+    "health_status": "healthy"
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_abc123"
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Insurance fund information
+
+  <Expandable title="Insurance fund properties">
+    <ResponseField name="balance_satoshis" type="integer">
+      Current insurance fund balance in satoshis
+    </ResponseField>
+    
+    <ResponseField name="balance_usd" type="number">
+      Current insurance fund balance in USD equivalent
+    </ResponseField>
+    
+    <ResponseField name="balance_btc" type="number">
+      Current insurance fund balance in BTC
+    </ResponseField>
+    
+    <ResponseField name="last_updated" type="string">
+      ISO 8601 timestamp when balance was last updated
+    </ResponseField>
+    
+    <ResponseField name="contribution_rate" type="number">
+      Current rate at which profitable trades contribute to the fund (as decimal)
+    </ResponseField>
+    
+    <ResponseField name="utilization_rate" type="number">
+      Percentage of fund currently allocated to cover positions (as decimal)
+    </ResponseField>
+    
+    <ResponseField name="health_status" type="string">
+      Current health status: "healthy", "warning", or "critical"
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Understanding the Insurance Fund
+
+<AccordionGroup>
+  <Accordion title="Purpose of Insurance Fund">
+    The insurance fund protects traders from losses due to:
+    - **Bankruptcy events**: When traders can't cover their losses
+    - **System failures**: Technical issues that affect trading
+    - **Market gaps**: Extreme price movements beyond liquidation prices
+    - **Counterparty risk**: Default by other market participants
+  </Accordion>
+
+  <Accordion title="How It Works">
+    - **Contributions**: Small percentage of profitable trades
+    - **Automatic**: Deducted seamlessly from winning positions
+    - **Transparent**: Balance publicly visible for confidence
+    - **Coverage**: Covers losses that exceed trader's margin
+  </Accordion>
+
+  <Accordion title="Fund Health Status">
+    - **Healthy**: Fund balance > 80% of target level
+    - **Warning**: Fund balance 50-80% of target level
+    - **Critical**: Fund balance < 50% of target level
+    
+    When critical, contribution rates may temporarily increase.
+  </Accordion>
+
+  <Accordion title="Contribution Mechanism">
+    - **Rate**: Currently 0.05% (0.0005) of profitable trade value
+    - **Automatic**: Deducted from winning trades only
+    - **Transparent**: No hidden fees or charges
+    - **Variable**: Rate may adjust based on fund health
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+The insurance fund balance is updated in real-time and provides an additional layer of protection for all traders on the platform.
+</Info>
+
+<Warning>
+During extreme market conditions, if the insurance fund is depleted, auto-deleveraging (ADL) may be triggered to manage risk.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card
+    title="Open Interest"
+    icon="chart-pie"
+    href="/api/api-reference/market-data/open-interest"
+  >
+    Current market exposure
+  </Card>
+  <Card
+    title="Account Balance"
+    icon="wallet"
+    href="/api/api-reference/account/balances"
+  >
+    Your account balance
+  </Card>
+</CardGroup>

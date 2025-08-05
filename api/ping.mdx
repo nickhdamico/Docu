@@ -1,0 +1,67 @@
+---
+title: "Ping"
+api: "GET /ping"
+description: "Simple health check endpoint"
+---
+
+## Ping Endpoint
+
+A simple health check endpoint to verify API connectivity.
+
+### Endpoint
+```http
+GET /ping
+```
+
+### Parameters
+
+No parameters required.
+
+### Example Request
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.roxom.com/ping"
+```
+
+```python Python
+import requests
+
+response = requests.get('https://api.roxom.com/ping')
+print(response.text)  # "pong"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.roxom.com/ping');
+const text = await response.text();
+console.log(text); // "pong"
+```
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+```text Success
+pong
+```
+</ResponseExample>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Health Monitoring">
+    Use this endpoint to verify that the API is responsive and available.
+  </Accordion>
+
+  <Accordion title="Connectivity Testing">
+    Test network connectivity and basic API accessibility before making authenticated requests.
+  </Accordion>
+
+  <Accordion title="Load Balancer Health Checks">
+    Configure load balancers to use this endpoint for health checks.
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+This endpoint does not require authentication and always returns a simple "pong" response when the API is operational.
+</Info>

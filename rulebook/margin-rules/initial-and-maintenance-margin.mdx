@@ -1,0 +1,45 @@
+---
+title: "Initial & Maintenance Margin"
+description: "Initial Margin is the collateral required to open a position, while Maintenance Margin is the minimum collateral required to keep a position open."
+---
+
+# Initial & Maintenance Margin
+
+Initial Margin is the collateral required to open a position, while Maintenance Margin is the minimum collateral required to keep a position open.
+
+## Initial Margin
+
+Initial Margin represents the minimum collateral amount required to open a new position on Roxom. This serves as a security deposit to ensure traders have sufficient funds to cover potential losses from their trading activities.
+
+### Key Characteristics:
+- **Required upfront**: Must be available in your account before opening a position
+- **Position-specific**: Calculated based on the size and risk profile of the intended position
+- **BTC-denominated**: All margin requirements are calculated and held in Bitcoin
+- **Risk-based calculation**: Higher leverage positions require proportionally higher initial margin
+
+## Maintenance Margin
+
+Maintenance Margin is the minimum amount of collateral that must remain in your account to keep an existing position open. If your account equity falls below this threshold, liquidation procedures may be triggered.
+
+### Key Characteristics:
+- **Ongoing requirement**: Must be maintained throughout the life of the position
+- **Lower than Initial Margin**: Typically set at a level below the initial margin requirement
+- **Liquidation trigger**: When account equity equals maintenance margin (100% margin ratio), liquidation begins
+- **Real-time monitoring**: Continuously calculated using mark prices to prevent manipulation
+
+## Relationship Between Initial and Maintenance Margin
+
+The relationship between these two margin types is crucial for understanding your trading risk:
+
+- **Initial Margin > Maintenance Margin**: This buffer allows for some adverse price movement without immediate liquidation
+- **Buffer zone**: The difference provides breathing room for normal market volatility
+- **Risk management**: Helps prevent frequent liquidations from minor price fluctuations
+
+## Margin Calculation Method
+
+Roxom uses sophisticated risk models to calculate margin requirements that account for:
+- Position size and notional value
+- Current market volatility
+- Underlying asset characteristics
+- Available leverage for the specific contract
+- Overall portfolio risk exposure
