@@ -29,12 +29,7 @@
               "api/ping"
             ]
           },
-          {
-            "group": "REST API",
-            "pages": [
-              "api/api-reference/introduction"
-            ]
-          },
+
           {
             "group": "Market Data",
             "pages": [
