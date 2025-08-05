@@ -1,8 +1,14 @@
 ---
 title: "Insurance Fund Overview"
-description: "BTC-denominated Insurance Fund covers liquidation shortfalls when trader losses "
+description: >-
+  BTC-denominated Insurance Fund covers liquidation shortfalls when trader
+  losses exceed collateral, protecting winning traders' full profits &
+  preventing negative balances without socializing losses.
 ---
 
-# Insurance Fund Overview
+The Insurance Fund is a critical part of Roxom's risk management infrastructure. It acts as a financial buffer to ensure that **traders' losses do not cascade to other users or the platform**. In essence, the Insurance Fund covers losses from liquidations that exceed the liquidated trader's collateral, so that winning traders still get their full profits and the losing traders' balance never goes below zero.&#x20;
 
-BTC-denominated Insurance Fund covers liquidation shortfalls when trader losses exceed collateral, protecting winning traders' full profits and preventing negative balances without socializing losses.
+Key aspects of the Insurance Fund and how defaults are handled include:
+
+* **Purpose:** The primary role of the Insurance Fund is to absorb **liquidation shortfalls**. A shortfall occurs when a position is closed at a price that leaves the trader's account with negative equity (i.e. their collateral was not enough to cover the loss at liquidation). Instead of forcing the winning counterparty to forfeit some of their gains or socializing the loss across all traders, the Insurance Fund pays the difference. This way, the winning side of the trade receives their full P\&L, and the defaulting trader's balance is simply brought to zero (they do not owe anything beyond their lost collateral).
+* **Denomination:** Roxom's Insurance Fund is denominated in **BTC** (since all contracts on the platform use BTC as the base collateral). All contributions to the fund and any payouts from the fund are handled in BTC.

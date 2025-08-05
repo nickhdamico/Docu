@@ -1,8 +1,22 @@
 ---
 title: "Market Order"
-description: "Market orders execute immediately at best available prices with built-in slippage protection"
+description: >-
+  Market orders execute immediately at best available prices during live trading
+  hours only, with built-in slippage protection to prevent extreme price impact.
 ---
 
-# Market Order
+An order to immediately buy or sell at the best available prices in the order book. Market orders don't specify a price—they execute by matching against existing limit orders (taking liquidity) until the requested quantity is fully executed or no more depth is available at the maximum slippage conditions.
 
-Market orders execute immediately at best available prices during live trading hours only, with built-in slippage protection to prevent extreme price impact.
+**Availability:**
+
+* **24/7 contracts:** Market orders can be placed at **any time**, immediately matching with existing limit orders in the continuously active Roxom order book.
+* **Market-hours contracts (if explicitly designated):** Market orders can **only be placed during trading hours**. Outside these hours, market orders are rejected because the order book is inactive and no executable price exists.
+
+**Execution Behavior:**
+Upon submission, market orders consume the best available bids (sell market orders) or asks (buy market orders), continuing through the book until fully filled or until no further matching orders remain within the allowed price impact range.
+
+**Slippage Protection:**
+To protect traders from extreme slippage, Roxom's matching engine enforces a **price-impact cap**. In practice, the market order behaves as if it had a hidden limit price, for example, 2% away from the entry price. If executing the order would exceed this threshold, the remaining unfilled quantity is immediately canceled. This prevents market orders from inadvertently causing large price moves, ensuring orderly execution and protecting traders.
+
+**Partial Fills:**
+Market orders can partially fill if the order book lacks sufficient depth within the allowed price range. Any unfilled portion beyond this threshold is canceled immediately, as market orders do not have resting prices.

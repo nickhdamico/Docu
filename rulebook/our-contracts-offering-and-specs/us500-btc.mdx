@@ -1,8 +1,21 @@
 ---
 title: "US500-BTC"
-description: "Specific details for US500-BTC perpetual futures contract"
+description: Below are the specific details for US500-BTC perpetual futures.
 ---
 
-# US500-BTC
-
-Below are the specific details for US500-BTC perpetual futures.
+| **Contract Code** | `US500-PERP` |
+| --- | --- |
+| **Underlying Indices** | • **Equity leg:** Composite price for the **SPDR S&P 500 ETF (SPY)** from primary-listing venues • **BTC Price:** 3-venue 4-hour V-WAP spot composite of Binance (BTC/USDT); Bybit (BTC/USDT); Coinbase (BTC/USD). |
+| **Contract Size** | Notional of **10 × SPDR S&P 500 ETF (SPY) point,** quoted & settled in BTC |
+| **Quote / P&L Currency** | BTC |
+| **Tick Size** | 0.01 Contracts |
+| **Trading Hours** | **24 / 7 continuous order book.** |
+| **Underlying Cash‑Market Hours** | **Monday – Friday** • **Pre‑Market:** 04:00 – 09:30 ET • **Regular Session:** 09:30 – 16:00 ET • **After‑Hours:** 16:00 – 20:00 ET _(NYSE Arca consolidated tape; closed on U.S. market holidays)._ |
+| **Mark-Price Construction** | **Mark Price** = median(P¹, P², 5-min_Last), Where: • Price 1 = Index Price × [1 + Last Funding Rate × (Time Until Funding /8)] • Price 2 = Index Price + Moving Average (5-minute Basis) • 5-min_last = Moving Average [(Bid1 + Ask1)/2 − Index Price], which measures every second in a 5-minute interval • Price-protection for Index Price: omit prints > 5 % from median; readmit after ≤ 3 % for 5 min. |
+| **Price Formation when the underlying equity market is closed** | • **Equity leg (SPY):** When U.S. equity exchanges are closed, the equity‑leg reference is **frozen at the last official SPY print** (primary‑listing venues' closing last price). • **BTC leg:** The BTC component continues to update in real time using our 3‑venue 4‑hour VWAP composite (Binance BTC/USDT, Bybit BTC/USDT, Coinbase BTC/USD). • **Mark Price:** mark price is calculated in the same way a the normal trading hours, where each _P_ is computed with the **static SPY close** and the **live BTC composite**. |
+| **Funding Snapshots** | 00:00 UTC • 08:00 UTC • 16:00 UTC (every 8 h) |
+| **Funding-Rate Formula** | **Premium Index + Interest Rate**; Interest Rate = 0.10 % / day (0.033 % / 8 h). Caps ± 3 % per 8 h. |
+| **Leverage & Margin** | Max Leverage 10x; Maintenance margin 50% of Initial Margin. |
+| **Liquidation Logic** | • Trigger when Equity < MM. • For long positions = Entry Price × (1−Initial Margin Rate + Maintenance Margin Rate) • For short positions = Entry Price × (1 + Initial Margin Rate - Maintenance Margin Rate) |
+| **Order Types / TIF** | Limit, Market, GTC, GTD, IOC. |
+| **Min / Max Order Sizes** | **Market Max:** 0.5 BTC **Limit Max:** 2.5 BTC |

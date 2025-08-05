@@ -1,8 +1,9 @@
 ---
 title: "Self-Trade Prevention"
-description: "The engine prevents self-trading by automatically canceling the older resting or"
+description: >-
+  The engine prevents self-trading by automatically canceling the older resting
+  order when opposing orders from the same account would match, avoiding wash
+  trades.
 ---
 
-# Self-Trade Prevention
-
-The engine prevents self-trading by automatically canceling the older resting order when opposing orders from the same account would match, avoiding wash trades.
+The engine automatically prevents self-trading. If two opposing orders from the same account would trade with each other, the system cancels the older order (the one resting on the book) instead of executing a trade. This avoids any accidental **wash trades** and ensures reported trade volume reflects genuine trades between different parties.

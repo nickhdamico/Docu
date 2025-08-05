@@ -1,8 +1,29 @@
 ---
 title: "Funding Payment Calculation"
-description: "Funding payment is dependant on position notional value and funding rate, with l"
+description: >-
+  Funding payment is dependant on position notional value & funding rate, with
+  longs paying shorts when funding is positive (perp above index) & shorts
+  paying longs when negative (perp below index).
 ---
 
-# Funding Payment Calculation
+For each position you hold, the funding payment is calculated as:
 
-Funding payment is dependant on position notional value and funding rate, with longs paying shorts when funding is positive (perp above index) and shorts paying longs when negative (perp below index).
+$$
+Funding Amount = Position Size (notional) × Funding Rate.
+$$
+
+
+The position size for calculation is typically taken as the notional value of the contracts. On Roxom, since everything is in BTC terms, it effectively translates to&#x20;
+
+$$
+BTC amount paid/received = position contracts × contract value × funding rate.
+$$
+
+For example, if you are long 5 contracts and each contract is worth 1 BTC notional at current prices, and the funding rate is +0.05%, then you would pay 5 × 1 BTC × 0.0005 = 0.0025 BTC in that funding interval (and shorts collectively receive that amount).
+
+*   **Who Pays Whom:**
+
+    * If the **Funding Rate is positive**, Long positions pay and Short positions receive.
+    * If the **Funding Rate is negative**, Short positions pay and Long positions receive.
+
+    Essentially, the side that is more "in demand" (causing the perp to price above index) pays the side that is less in demand. This incentivizes traders to take the other side and brings the prices back in line.

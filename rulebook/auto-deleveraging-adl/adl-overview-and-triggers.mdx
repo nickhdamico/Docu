@@ -1,8 +1,12 @@
 ---
 title: "ADL Overview & Triggers"
-description: "Auto-Deleveraging (ADL) is Roxom's last-resort mechanism for extreme black swan "
+description: >-
+  Auto-Deleveraging (ADL) is Roxom's last-resort mechanism for extreme black
+  swan scenarios where liquidation losses exceed or exhaust the Insurance Fund.
 ---
 
-# ADL Overview & Triggers
+**Auto-Deleveraging (ADL)** is Roxom's last-resort mechanism to address losses that remain after the Insurance Fund has been applied. While Roxom does everything possible to avoid ADL (and expects it to be extremely rare), ADL exists to handle an extreme **"black swan"** scenario – a situation where a trader's losses are so large and sudden that they **exhaust the Insurance Fund** or exceed what the fund can cover. ADL ensures the exchange remains solvent by **redistributing the remaining loss to other traders** in a predefined, rules-based way.
 
-Auto-Deleveraging (ADL) is Roxom's last-resort mechanism for extreme black swan scenarios where liquidation losses exceed or exhaust the Insurance Fund.
+#### **ADL Trigger Conditions**
+
+ADL will **only trigger** if, after a liquidation, there is a residual loss that the Insurance Fund cannot cover. This could happen if the Insurance Fund is completely depleted or if a single liquidation loss is larger than the current fund balance. Such a chain of events is unlikely given all the prior risk controls, but it is possible in a catastrophic market move (for instance, a flash crash far beyond normal limits).

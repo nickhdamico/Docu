@@ -1,8 +1,15 @@
 ---
 title: "Mark Price & P&L Settlement"
-description: "Margin calculations use Mark Price to prevent manipulation-driven liquidations, "
+description: >-
+  Margin calculations use Mark Price to prevent manipulation-driven
+  liquidations, with unrealized P&L accruing real-time but unavailable for
+  withdrawal in isolated mode until position closure.
 ---
 
-# Mark Price & P&L Settlement
+### **Mark Price for Margining**
 
-Margin calculations use Mark Price to prevent manipulation-driven liquidations, with unrealized P&L accruing real-time but unavailable for withdrawal in isolated mode until position closure.
+All margin calculations (initial requirements, maintenance, unrealized P\&L) use the **Mark Price** rather last traded price. This is a critical risk management practice to avoid unjust liquidations or margin calls due to momentary trading anomalies. By basing margin on the fair Mark Price (which is a blended index price), sudden spikes or manipulation of the traded price won't immediately affect margin calculations _(see_[ _Fair Mark Pricing_](../risk-controls/pre-trade-order-controls) _for a detailed view on the implementation)._
+
+### **Margin and P\&L Settlement**
+
+Profits and losses on open positions accrue in real-time to your account equity (unrealized P\&L). However, in isolated mode, you cannot withdraw unrealized profits until the position is closed (since that P\&L is keeping the position's margin ratio safe). Traders may manually add or remove margin to a position (as long as it stays above initial requirements) to manage risk, as long as partially close the position to reduce notional.

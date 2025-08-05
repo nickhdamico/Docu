@@ -1,0 +1,26 @@
+---
+title: "Margin & Risk"
+description: >-
+  This section covers Initial Margin, Maintenance Margin, the Margin Ratio
+  metric, & how Roxom estimates your Liquidation Price & Bankruptcy Price.
+---
+
+### **Initial Margin (IM)**
+
+The percentage of a position's notional value that must be posted as collateral to open the position. For example, at 10× leverage (10% IM), a 10 BTC position requires 1 BTC collateral up front. Higher leverage = lower required IM%. Roxom's day-one maximum leverage is 10× (thus 10% IM for any position).
+
+### **Maintenance Margin (MM)**
+
+The minimum collateral that must be maintained to keep a position open, typically lower than IM. At launch, maintenance margin is set to **50% of the initial margin** requirement for a position. For instance, if IM is 10%, MM is 5% of notional (0.5 BTC on a 10 BTC position). If equity falls below this level, the position risks liquidation.
+
+### **Margin Ratio**
+
+A metric used to track an account's risk. Defined as **Maintenance Margin requirement ÷ Account Equity**, it approaches 100% as losses mount. When Margin Ratio reaches 100%, the account has no free equity above maintenance margin – this is the threshold for liquidation.
+
+### **Liquidation Price**
+
+An approximate price level of the underlying at which a position's Margin Ratio would hit 100%, i.e. the price at which the account's equity equals the maintenance margin. If the Mark Price reaches this level, the position will be liquidated. The platform provides this estimate to traders for each position as a reference. 
+
+### **Bankruptcy Price**
+
+The theoretical price of the underlying at which a position's equity would be completely exhausted (zero). This price is used in liquidation processing to calculate shortfall or residual, and it often represents the price at which the losing side of the trade cannot pay further. Liquidation engines attempt to close positions **at or above the bankruptcy price** to avoid any negative equity scenario.

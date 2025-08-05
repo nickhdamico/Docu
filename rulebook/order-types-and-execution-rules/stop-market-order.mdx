@@ -1,8 +1,28 @@
 ---
 title: "Stop-Market Order"
-description: "Stop-market orders trigger into market orders when a stop price is reached, guar"
+description: >-
+  Stop-market orders trigger into market orders when a stop price is reached,
+  guaranteeing execution but not price, including during market gaps where fills
+  may differ significantly from the stop level.
 ---
 
-# Stop-Market Order
+A conditional order that remains inactive until a specified stop price is reached, at which point it triggers and converts into an immediate market order. Traders commonly use stop-market orders either as stop-loss orders—to exit losing positions if the market moves against them—or as stop-entry orders to enter a position once a certain price level confirms momentum.
 
-Stop-market orders trigger into market orders when a stop price is reached, guaranteeing execution but not price, including during market gaps where fills may differ significantly from the stop level.
+**Definition:**
+A stop-market order is defined by two parameters:
+
+* **Trigger (stop) price**
+* **Order side (buy or sell)**
+
+The order remains dormant until the contract's **Mark Price** touches or passes through the trigger price, activating the order immediately.
+
+**Execution Behavior:**
+When triggered, a stop-market order guarantees immediate execution (assuming sufficient liquidity) at the best available market price. However, it does **not guarantee the execution price**, and in volatile or fast-moving markets, the fill price may deviate significantly from the trigger price (known as slippage).
+
+**Gap Handling:**
+
+* **24/7 contracts:**
+  Because trading occurs continuously without scheduled downtime, price gaps typically do not occur. The stop-market triggers immediately upon the Mark Price hitting the stop level, executing seamlessly at the prevailing market prices.
+* **Market-hours contracts (if explicitly designated):**
+  If the market re-opens after a closure period and the Mark Price has already moved past the trigger level, the stop-market order will trigger immediately at the open, executing at the first available market price.
+  **Example:** If you set a sell-stop at 0.0025 BTC, the market closes at 0.0027 BTC, and then reopens at 0.0022 BTC, the stop is triggered upon opening and executes at approximately 0.0022 BTC. While the trader exits immediately, execution occurs at a worse price than the stop, reflecting the risk and trade-off of guaranteed execution in gap scenarios.

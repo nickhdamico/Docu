@@ -1,8 +1,19 @@
 ---
 title: "ADL Ranking Algorithm"
-description: "ADL selection uses a ranking system prioritizing traders with the highest unreal"
+description: >-
+  ADL selection uses a ranking system prioritizing traders with the highest
+  unrealized profit percentage & highest leverage on the opposite side of the
+  defaulting position.
 ---
 
-# ADL Ranking Algorithm
+**Selection of Traders (Ranking System):** If ADL is triggered, Roxom uses a fair algorithm to determine **which traders' positions will be reduced** to cover the shortfall. The guiding principle is that those who have profited the most (and took on high risk) in the situation are first in line to give up a portion of their gains. The ranking algorithm considers two factors for each opposing trader (traders on the opposite side of the defaulting position):
 
-ADL selection uses a ranking system prioritizing traders with the highest unrealized profit percentage and highest leverage on the opposite side of the defaulting position.
+1. **Profit Percentage:** How much profit (percentage-wise) the trader's position has _unrealized_ at that moment. This measures how far "in the money" their position is due to the market move.
+2. **Leverage (Risk Usage):** The effective leverage or margin ratio of that position. Traders using very high leverage (i.e. with relatively little collateral for a large position) are considered to be taking more risk.
+
+Traders with **the highest profit % and highest leverage** are ranked at the top for ADL. The logic is that those who gained the most from the market move and did so with high risk are the ones who will first shoulder the burden of the extreme event. Conversely, traders with smaller profits or who were using lower leverage (more conservative) are less likely to be affected by ADL.
+
+#### Formula Logic
+
+* ADL Score for Longs: P\&L% × Effective Leverage
+* ADL Score for Shorts: P\&L% ÷ Effective Leverage

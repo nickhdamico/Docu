@@ -1,8 +1,25 @@
 ---
 title: "Limit Order"
-description: "Limit orders execute at specified price or better, can be placed anytime including during closures"
+description: >-
+  Limit orders execute at a specified price or better & can be placed anytime,
+  including during market closures, with queued orders entering the book when
+  trading resumes.
 ---
 
-# Limit Order
+An order to buy or sell at a specific price (the "limit price") or better. Limit orders execute at the limit price or a more favorable price but never at a worse price. Traders use limit orders to control their execution price precisely.
 
-Limit orders execute at a specified price or better and can be placed anytime, including during market closures, with queued orders entering the book when trading resumes.
+**Availability:** Limit orders can always be submitted—24 hours a day, 7 days a week—and immediately enter Roxom's order book. Upon entry, a limit order instantly matches against any opposing orders if its price is marketable. Any remaining portion sits as a resting (maker) order at its limit price.
+
+* **24/7 contracts:** Orders continuously match and remain active in the order book until fully executed or canceled. No market closures or gaps occur.
+* **Market-hours contracts (if designated explicitly):**
+  * **During market hours:** Limit orders behave as described above (instantly matching or resting as a maker order).
+  * **Outside market hours:** Limit orders rest in the order book, can match against other resting orders immediately upon entry, but any unfilled remainder stays inactive until trading resumes at market open.
+
+**Execution:** A buy limit executes when the ask price meets or drops below the limit; a sell limit executes when the bid price meets or rises above the limit. For 24/7 contracts, this matching happens continuously. For market-hours contracts, matching only occurs during designated trading sessions or immediately upon entry if there are existing resting orders.
+
+**Market Open (Market-hours contracts only):** If the market opens with a price gap through a limit order:
+
+* If the gap is favorable (e.g., buy limit at 0.0010 BTC opens at 0.0009 BTC), the order executes at the better opening price.
+* If the gap is unfavorable (e.g., buy limit at 0.0010 BTC opens at 0.0012 BTC), the order does not execute and remains resting at its limit price.
+
+**Time-in-Force:** By default, limit orders are Good-Til-Canceled (GTC). Roxom also supports Immediate-Or-Cancel (IOC) orders for traders who want immediate fills or cancellation.

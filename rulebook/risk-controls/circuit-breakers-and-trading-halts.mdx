@@ -1,8 +1,9 @@
 ---
 title: "Circuit Breakers & Trading Halts"
-description: "Circuit breakers trigger market-wide trading halts for contracts with extreme pr"
+description: >-
+  Circuit breakers trigger market-wide trading halts for contracts with extreme
+  price movements, pausing trade execution while keeping the order book active
+  for cancellations & new orders.
 ---
 
-# Circuit Breakers & Trading Halts
-
-Circuit breakers trigger market-wide trading halts for contracts with extreme price movements, pausing trade execution while keeping the order book active for cancellations and new orders.
+If the price of a contract moves extremely sharply in a very short time (beyond a defined threshold), Roxom can trigger a **market-wide trading halt** for that contract. During a circuit breaker halt, the order book remains online and users can cancel orders or place new ones, but **matching is halted** – no trades execute during the pause. This gives the market a short time to breathe, allow liquidity to refresh, and for traders to reassess. After a brief period (or manual intervention by the risk team), trading can resume. Circuit breakers prevent uncontrolled flash crashes or spikes by stopping the action momentarily when things move too far, too fast.

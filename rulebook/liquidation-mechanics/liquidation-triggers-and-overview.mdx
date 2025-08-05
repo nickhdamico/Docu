@@ -1,8 +1,11 @@
 ---
 title: "Liquidation Triggers & Overview"
-description: "Liquidation triggers when Margin Ratio hits 100%, meaning account equity equals "
+description: >-
+  Liquidation triggers when Margin Ratio hits 100%, meaning account equity
+  equals maintenance margin requirement, indicating no remaining free margin to
+  absorb further losses.
 ---
 
-# Liquidation Triggers & Overview
+If a position's losses become too large relative to its collateral, Roxom's liquidation engine will intervene to close the position and protect the account from going negative.
 
-Liquidation triggers when Margin Ratio hits 100%, meaning account equity equals maintenance margin requirement, indicating no remaining free margin to absorb further losses.
+When an account's **Margin Ratio reaches 100%** (meaning account equity equals the maintenance margin requirement for the position), that position is flagged for liquidation. In simpler terms, the account has no more free margin – any further loss would start eating into collateral it doesn't have. At this point, a liquidation sequence is initiated to close the position before the account balance goes below zero.

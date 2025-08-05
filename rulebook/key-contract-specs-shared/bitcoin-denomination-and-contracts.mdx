@@ -1,8 +1,19 @@
 ---
 title: "Bitcoin Denomination & Contracts"
-description: "How Roxom perpetuals use BTC as quote and settlement currency with fixed contract quantities"
+description: >-
+  Roxom perpetuals use BTC as both the quote & settlement currency. Each
+  contract also represents a fixed quantity of its underlying asset—so you know
+  exactly the exposure you're trading per contract.
 ---
 
-# Bitcoin Denomination & Contracts
+### **Quote Currency**
 
-Roxom perpetuals use BTC as both the quote and settlement currency. Each contract also represents a fixed quantity of its underlying asset—so you know exactly the exposure you're trading per contract.
+Prices are quoted in BTC terms (e.g., an asset price might be shown as 0.0025 BTC). For convenience, the UI may also display this as satoshis (e.g., 250,000 sats).
+
+### **Settlement Currency**
+
+All profits, losses, and collateral are denominated in BTC (settlements are in BTC).
+
+### **Contract Unit**
+
+Each contract represents a fixed quantity of the underlying asset (e.g., GOLD/BTC has its own contract size, measured in ounces of gold).

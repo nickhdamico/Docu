@@ -1,8 +1,14 @@
 ---
 title: "ADL Execution Process"
-description: "ADL closes positions of the highest-ranked opposing traders in order, taking por"
+description: >-
+  ADL closes positions of the highest-ranked opposing traders in order, taking
+  portions or full positions to cover the shortfall, continuing down the rank
+  until the entire deficit is resolved.
 ---
 
-# ADL Execution Process
+**Process of Deleveraging:** When ADL activates, the system begins reducing positions of the top-ranked traders on the opposite side of the market (i.e. those traders who are holding positions that are in profit, opposite to the defaulting trader's direction). This process happens in order, one trader at a time, until the shortfall is resolved:
 
-ADL closes positions of the highest-ranked opposing traders in order, taking portions or full positions to cover the shortfall, continuing down the rank until the entire deficit is resolved.
+* The highest-ranked trader is **deleveraged first**. The system will close a portion of their position (or the entire position if necessary) equal in notional size to what's needed to cover the shortfall. In practice, Roxom's system takes over that portion of the position – effectively forcing the trader to realize their profit on that portion at the current market price.
+* If closing that trader's position (in whole or part) covers the entire shortfall, then ADL stops there.
+* If there is still an outstanding loss after the first trader is fully/partially deleveraged, the system moves to the **next trader in the rank** and repeats the process, taking over part or all of their position to cover the remaining loss.
+* This continues down the ranked list until the entire shortfall amount has been compensated by the profits taken from these top traders' positions. Once the deficit is fully covered, no further positions are reduced.

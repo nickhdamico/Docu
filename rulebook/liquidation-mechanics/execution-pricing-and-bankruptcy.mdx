@@ -1,8 +1,18 @@
 ---
 title: "Execution Pricing & Bankruptcy"
-description: "Liquidation aims to close positions at or better than Bankruptcy Price. Better e"
+description: >-
+  Liquidation aims to close positions at or better than Bankruptcy Price. Better
+  executions contribute to the Insurance Fund, while worse executions create
+  shortfalls that the Insurance Fund covers.
 ---
 
-# Execution Pricing & Bankruptcy
+The liquidation engine aims to execute the closing trades **at or better than the position's Bankruptcy Price**. This is critical: any execution price above the bankruptcy price means there was some collateral left over after closing. Any price worse than bankruptcy means the account would go negative (a shortfall). The engine will try to avoid the latter.&#x20;
 
-Liquidation aims to close positions at or better than Bankruptcy Price. Better executions contribute to the Insurance Fund, while worse executions create shortfalls that the Insurance Fund covers.
+In practice:
+
+* If the position can be closed _above_ the bankruptcy price, the account will have some equity left (which is contributed to the Insurance Fund as explained below).
+* If the position closes _exactly at_ bankruptcy, the account equity will be zero.
+* If it had to close _below_ bankruptcy (avoiding this is the goal, but say the market dropped too fast), the account would go negative – in that case the negative portion is a **shortfall** that the Insurance Fund must cover.
+* The difference between the actual close price and the bankruptcy price determines if there is excess or deficit. **Excess margin** from a favorable liquidation (close price better than bankruptcy) is taken to the Insurance Fund. Any **shortfall** (close worse than bankruptcy) is absorbed by the Insurance Fund to bring the account to zero.
+
+Once the liquidation process finishes, the trader's position is closed. The trader's account balance is adjusted – in most cases it will be zeroed out or left with a small residual. The trader will be notified of the liquidation event. All further handling of any loss beyond collateral is managed by the Insurance Fund and possibly ADL (see below).

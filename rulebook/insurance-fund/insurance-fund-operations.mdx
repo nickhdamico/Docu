@@ -1,8 +1,14 @@
 ---
 title: "Insurance Fund Operations"
-description: "The Insurance Fund covers shortfalls when liquidated accounts go negative, reset"
+description: >-
+  The Insurance Fund covers shortfalls when liquidated accounts go negative,
+  resetting trader balances to zero & ensuring winning traders receive full
+  profits without socializing losses.
 ---
 
-# Insurance Fund Operations
-
-The Insurance Fund covers shortfalls when liquidated accounts go negative, resetting trader balances to zero and ensuring winning traders receive full profits without socialized losses.
+* **Utilization – Covering Defaults:** When a liquidation event results in a shortfall (the liquidated account has gone below zero), the Insurance Fund is **immediately tapped** to cover that loss:
+  * The defaulting trader's balance is reset to 0 (they cannot go negative in the system).
+  * The Insurance Fund is debited by the amount needed to make up the deficit, and that BTC is used to ensure the winning traders on the other side of the trades receive their full profit.
+    &#xNAN;_&#x45;xample:_ Suppose after a rapid market move, a trader's account ends up at –0.5 BTC due to slippage on liquidation. The Insurance Fund will pay 0.5 BTC into the system to cover the gap. The liquidated trader's account is then 0, and the counterparties get their winnings paid in full without any deduction.
+  * This mechanism means that **no other traders are directly affected** by someone's liquidation. The losing trader's collateral was insufficient, but the fund eats the loss so that the winners aren't short-changed and the exchange doesn't have to claw money from elsewhere.
+* **No Socialized Losses:** Under normal operations, as long as the Insurance Fund has a positive balance, **losses are not socialized** among traders. Each trader's loss is limited to their own collateral, and profitable traders are paid out completely. Roxom's intention is that the Insurance Fund prevents the need for any "socialized loss" events (where all users might have to pay a portion of someone else's loss). Only if the Insurance Fund were ever **exhausted** would additional measures come into play (i.e. the ADL system, described next).

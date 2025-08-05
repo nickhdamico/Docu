@@ -1,8 +1,35 @@
 ---
 title: "Position & Open Interest Limits"
-description: "Roxom's Risk controls include total open interest cap triggering platform-wide r"
+description: >-
+  Roxom's Risk controls include total open interest cap triggering platform-wide
+  reduce-only mode; individual position limits with individual reduce-only mode.
 ---
 
-# Position & Open Interest Limits
+### **Total Open Interest Cap**
 
-Roxom's Risk controls include total open interest cap triggering platform-wide reduce-only mode; individual position limits with individual reduce-only mode.
+The platform caps the **aggregate open interest** to a certain level (e.g. 100 BTC across all contracts by default). This means there is an upper limit on the total size of all outstanding positions in the system. If this cap is reached, no new positions can be opened (only reducing existing positions is allowed) until overall open interest falls below the cap. This acts as a circuit-breaker on growth, ensuring the worst-case scenario loss exposure is within the Insurance Fund's capacity. In practice, if the cap is hit, the system would activate _reduce-only mode platform-wide_: traders could only close or reduce positions, not increase or open new ones, until OI is back under the limit.
+
+### **Maximum Position Limit**
+
+There is a limit to how large a position any single account can hold in each contract. By default, no account can hold more than **5 BTC or 10% of the total open interest** in a contract, whichever is lower. This prevents any one trader from accumulating a dangerously large share of the market. This limit is enforced at order entry: any order that would cause a position to exceed the allowed maximum is blocked. If an account somehow grows its share of open interest due to others closing positions (for example, if others exit and your share becomes >10%), the risk monitoring will flag it and the account will be put into **reduce-only mode** for that contract (meaning the trader can only decrease that position, not increase, until back under the limit).
+
+### **Reduce-Only Mode System**
+
+When reduce-only mode is activated (either platform-wide due to total OI caps or account-specific due to position limits), the trading system enforces specific restrictions while maintaining essential position management capabilities. **All orders submitted during reduce-only mode are automatically flagged with reduce-only enforcement**, ensuring they can only decrease existing positions.
+
+**Permitted Actions in Reduce-Only Mode:**
+
+* **Position-reducing and closing orders** that decrease the size or completely eliminate existing positions are allowed. For example, if holding a 3 BTC long position, a sell order for 1 BTC (reducing to 2 BTC long) would be accepted.
+* **Opposite-side orders** up to the current position size are allowed. A trader with a 2 BTC long position can place sell orders totaling up to 2 BTC notional value.
+* **Order modifications and cancellations** remain unrestricted, provided modifications don't increase potential position exposure.
+
+**Automatic Reduce-Only Enforcement:** During reduce-only mode, the system automatically applies reduce-only flags to all incoming orders, regardless of how they were originally submitted. This means even if a trader attempts to place a regular order, it will be processed with reduce-only logic to prevent position increases.
+
+**Order Validation Process:** The system evaluates each submitted order by calculating the current net position, determining the order's directional impact, and projecting the final position size if executed. Orders that would result in larger positions than currently held are automatically rejected.
+
+**Mode Activation and Deactivation:**
+
+* **Platform-wide reduce-only** activates when aggregate open interest hits the system cap and automatically lifts when total OI falls below the threshold.
+* **Account-specific reduce-only** triggers when individual position limits are exceeded and automatically deactivates once the account's positions return to acceptable levels.
+
+This framework ensures risk limits are maintained while preserving traders' ability to manage and exit their positions responsibly.

@@ -1,6 +1,14 @@
 ---
 title: "Post-Trade Risk Management"
-description: ""
+description: >-
+  Post-trade risk management includes Insurance Fund coverage, real-time monitoring, & emergency intervention capabilities to maintain platform safety & integrity.
 ---
 
-# Post-Trade Risk Management
+* **Insurance Fund Coverage:** As described, Roxom's **Insurance Fund** acts as a backstop for any losses beyond collateral. From a risk control perspective, it means that for any liquidation, if the execution price is worse than the trader's bankruptcy price (leading to a shortfall), the Insurance Fund will cover the deficit. Traders on the winning side are thus protected and get their full due. This is a post-trade safety net ensuring that individual defaults do not propagate losses.
+*   **Monitoring and Manual Intervention:** Roxom's risk management team continuously monitors the platform's metrics: order book depth, spreads, trading volumes, index feed health, and any anomalies. If an issue arises – for example, a data feed error causing bad quotes, or a sudden liquidity withdrawal by a market maker causing illiquidity – the team has protocols to intervene. They can take actions such as:
+
+    1. **Removing or adjusting faulty price feeds** from index calculations (to maintain Mark Price integrity).
+    2. **Calling in backup liquidity** providers or encouraging market makers to step in if needed to restore order book depth.
+    3. **Tightening risk parameters** on the fly (for instance, temporarily lowering maximum leverage, narrowing price bands, halting certain order types) under established emergency procedures. Any such changes would be communicated to users as appropriate.
+
+    These measures are there to address unforeseen situations in real-time and uphold a safe trading environment.

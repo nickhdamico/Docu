@@ -1,8 +1,27 @@
 ---
-title: "Behavior During Closed Hours"
-description: "How market-hours contracts handle orders during closure periods"
+title: "Behavior During Closed Hours (For Closed-Hours Instruments)"
+description: >-
+  Market-hours contracts allow limit order matching during closure but block
+  market orders; all resting orders stay active, stop orders trigger at
+  reopening, & continuous matching resumes.
 ---
 
-# Behavior During Closed Hours (For Closed-Hours Instruments)
+Its important to understand that **Roxom's order books are open 24 hours a day, 7 days a week.**
+All listed contracts—such as **GOLD/BTC, US500/BTC, OIL/BTC, US100/BTC**—trade continuously with no scheduled downtime. For equity‑linked contracts, when the underlying cash market is closed the equity reference is frozen at the latest official close, while the BTC leg updates in real time. Price discovery during these periods occurs entirely on Roxom's internal order book, so trading, funding, and liquidations continue without interruption.
 
-Market-hours contracts allow limit order matching during closure but block market orders; all resting orders stay active, stop orders trigger at reopening, and continuous matching resumes.
+
+But Roxom can also list a _market‑hours_ contract, that instrument will follow the trading sessions of its underlying market; outside those hours it will enter a **"closed"** state (orders rest but cannot match, and funding/liquidation timers pause).
+
+**During Market Closure:**
+
+* All resting orders from the prior session remain active on the order book and can still be matched against
+* Market orders cannot be placed while the market is closed (since there is no active price for immediate execution)
+* Limit orders can be placed and will immediately attempt to match against existing orders in the book. If a limit order cannot be fully filled against existing orders, the remaining quantity will rest on the book and wait for the market to reopen
+* Order matching continues during closed hours for limit orders only - allowing traders to take liquidity from the existing book but not forcing immediate execution at market prices
+
+**When Trading Resumes:** When trading reopens for a contract, the matching engine processes any accumulated orders or trigger events:
+
+* Any stop orders that triggered during the closure (based on the Mark Price movement while closed) will activate at the moment of reopening. They enter the order book at the open (using the opening Mark Price for reference) and then normal matching commences
+* There is no special opening auction; trading simply resumes continuous order matching with both market and limit orders now fully operational
+
+This approach maintains liquidity and allows strategic positioning during off-hours while preventing the price disruption that unrestricted market orders could cause when volume is typically lower.

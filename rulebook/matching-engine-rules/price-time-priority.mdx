@@ -1,8 +1,9 @@
 ---
 title: "Price-Time Priority"
-description: "Roxom's matching engine uses price-time priority, where orders execute by best p"
+description: >-
+  Roxom's matching engine uses price-time priority, where orders execute by best
+  price first, then by timestamp, with pre-closure orders maintaining their
+  original priority after market reopens.
 ---
 
-# Price-Time Priority
-
-Roxom's matching engine uses price-time priority, where orders execute by best price first, then by timestamp, with pre-closure orders maintaining their original priority after market reopens.
+Roxom's matching engine operates on a first-come, first-served basis for orders at the same price. Orders are matched by best price; if multiple orders share that price, the oldest (earliest in time) gets priority in execution. Price-time priority is upheld during normal trading; even after a trading halt or closure, orders that were in the book before a closure retain their priority when the market reopens

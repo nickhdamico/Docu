@@ -1,8 +1,13 @@
 ---
 title: "Reopening After Closure (For Closed-Hours Instruments)"
-description: "When markets reopen, queued orders are matched based on new conditions, with pre"
+description: >-
+  When markets reopen, queued orders are matched based on new conditions, with
+  pre-closure orders retaining their original priority over new orders at the
+  same price.
 ---
 
-# Reopening After Closure (For Closed-Hours Instruments)
+When the engine comes back online, it begins matching any queued orders based on the new market conditions. Since limit order matching continued during the closure period, some orders may have already been filled against existing book liquidity while the market was closed.
 
-When markets reopen, queued orders are matched based on new conditions, with pre-closure orders retaining their original priority over new orders at the same price.
+Any conditional orders that should have triggered based on Mark Price movements during the closure will activate immediately upon reopening, entering the order book and beginning normal matching.
+
+Traders are advised to set appropriate limit prices and stops, understanding that market conditions and order book depth may have changed during the downtime due to continued limit order matching activity.

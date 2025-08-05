@@ -1,8 +1,34 @@
 ---
 title: "Order Matching Engine"
-description: "Continuous order matching during active hours; closed sessions allow limit order"
+description: >-
+  Continuous order matching during active hours; closed sessions allow limit
+  orders only; reopening triggers conditional orders first, then resumes full
+  matching without auction.
 ---
 
-# Order Matching Engine
+Roxom's matching engine continuously processes and executes orders based on their price, priority, and timing. Execution rules differ slightly between continuous (24/7) and explicitly designated market-hours contracts.
 
-Continuous order matching during active hours; closed sessions allow limit orders only; reopening triggers conditional orders first, then resumes full matching without auction.
+**Continuous Matching (24/7 Contracts):**
+Contracts trading continuously (24/7) match orders in real-time without interruption. Incoming orders immediately match against the order book:
+
+* **Buy orders** match against the lowest available asks.
+* **Sell orders** match against the highest available bids.
+
+Matching continues seamlessly around the clock until the incoming order fully executes or no further matches exist.
+
+**Limited Matching During Closed Sessions (Market-hours contracts only):**
+For contracts explicitly designated as market-hours only, matching behavior outside of designated hours is limited:
+
+* **Limit orders** can still enter the book and immediately match against existing resting orders.
+* **Market orders** cannot be placed and will be rejected outside trading hours.
+* **Conditional orders** (stops, stop-limits, etc.) will not trigger outside market hours but remain pending activation at market open.
+
+This structure allows liquidity-taking during off-hours without risking forced executions or triggering conditional orders at potentially unfavorable prices.
+
+**Opening Sequence (Market-hours contracts only):**
+Upon reopening after a closed session, Roxom immediately resumes trading:
+
+1. The matching engine first checks the opening Mark Price and activates any **conditional orders** (stops, stop-limits, etc.) whose trigger conditions are met, placing them into the order book.
+2. Immediately after conditional orders are activated, **continuous matching resumes** for all order types, including market orders.
+
+There is **no opening auction**—trading begins immediately, restoring full functionality.

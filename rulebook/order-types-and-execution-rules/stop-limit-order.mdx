@@ -1,8 +1,35 @@
 ---
 title: "Stop-Limit Order"
-description: "Stop-limit orders trigger into limit orders when a stop price is reached, provid"
+description: >-
+  Stop-limit orders trigger into limit orders when a stop price is reached,
+  providing price control but potentially sacrificing execution if the market
+  moves beyond the limit price.
 ---
 
-# Stop-Limit Order
+A conditional order combining a stop trigger and a limit price. When triggered, it converts into a limit order (instead of a market order). This gives traders additional control over their execution price, at the cost of execution certainty.
 
-Stop-limit orders trigger into limit orders when a stop price is reached, providing price control but potentially sacrificing execution if the market moves beyond the limit price.
+**Definition:**
+A stop-limit order has two defined prices:
+
+* **Stop (trigger) price:** The price at which the order activates.
+* **Limit price:** The price at which the order is placed into the order book after being triggered.
+
+When the contract's Mark Price reaches or crosses the stop price, the order activates, immediately entering a limit order at the designated limit price (or better). The order can only execute at or better than the limit price—it will never trade through or beyond this limit.
+
+**Execution Behavior:**
+Once triggered, the stop-limit behaves like any regular limit order. It executes only if the market meets its limit price. Thus, there's no guarantee of execution if the market quickly moves past the limit price.
+
+**Example:**
+You set a stop-limit to sell, with **stop = 0.0020 BTC** and **limit = 0.0018 BTC**:
+
+* If the Mark Price reaches 0.0020 BTC, the order triggers and enters the order book as a limit sell order at 0.0018 BTC.
+* If the market swiftly drops below 0.0018 BTC (e.g., to 0.0015 BTC), the order won't fill immediately—it remains resting at 0.0018 BTC. If later the price rebounds to 0.0018 BTC or above, it fills. If not, your position stays open.
+
+**Gap Handling:**
+
+* **24/7 contracts:**
+  Trading is continuous with no scheduled downtime, meaning gap scenarios typically do not occur. Stop-limit orders trigger seamlessly when the Mark Price reaches the specified level.
+*   **Market-hours contracts (if explicitly designated):**
+    If the market re-opens after closure and prices have moved past both your stop and limit prices, your stop-limit order triggers immediately upon reopening but won't execute unless the market returns to your specified limit price or better.
+
+    **Example:** You place a sell stop-limit at **stop = 0.0025 BTC, limit = 0.0023 BTC**. If the market closes above at 0.0027 BTC but reopens at 0.0022 BTC, your order triggers immediately at open (stop price hit), entering the book as a resting limit sell at 0.0023 BTC. Because the price is now lower (0.0022 BTC), your order remains resting until the price rebounds to 0.0023 BTC or above.

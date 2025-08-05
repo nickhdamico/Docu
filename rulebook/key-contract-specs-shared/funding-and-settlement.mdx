@@ -1,8 +1,15 @@
 ---
 title: "Funding & Settlement"
-description: "Periodic funding mechanism, P&L settlement, and Insurance Fund coverage"
+description: >-
+  Periodic funding aligns perpetual prices with their underlyings, P&L accrues
+  & settles at the Mark Price on close, & any liquidation shortfall is
+  covered by the Insurance Fund (& ADL if needed).
 ---
 
-# Funding & Settlement
+### **Funding Interval**
 
-Periodic funding aligns perpetual prices with their underlyings, P&L accrues and settles at the Mark Price on close, and any liquidation shortfall is covered by the Insurance Fund (and ADL if needed).
+Funding payments between long and short position holders occur at regular intervals specific to each contract (_see_ [_Funding Payments_](../funding-payments) _section for details_). Each contract's funding rate reflects the market's supply/demand imbalance for that asset, and the interval timing (e.g. 8h, 4h, 1h) is defined in the contract specifications.
+
+### **Settlement**
+
+As perpetual contracts, there is **no expiration date** and no final settlement. Unrealized P\&L continuously accrues based on the Mark Price and is realized when positions are closed. Funding payments serve as a mechanism to continually settle deviations between the contract price and the underlying price. If a position is liquidated, it is immediately closed out at market; any loss beyond the trader's collateral is handled by the Insurance Fund (and ultimately ADL if necessary).

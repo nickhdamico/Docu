@@ -1,74 +1,9 @@
 ---
 title: "Margin Ratio & Risk Management"
-description: "Margin Ratio helps traders analyze liquidation risk as Maintenance Margin requirement divided by Account Equity, with warnings at ~80% and automatic liquidation triggered at 100%."
+description: >-
+  Margin Ratio helps traders analyze liquidation risk as Maintenance Margin
+  requirement divided by Account Equity, with warnings at ~80% & automatic
+  liquidation triggered at 100%.
 ---
 
-# Margin Ratio & Risk Management
-
-Margin Ratio helps traders analyze liquidation risk as Maintenance Margin requirement divided by Account Equity, with warnings at ~80% and automatic liquidation triggered at 100%.
-
-## Understanding Margin Ratio
-
-The Margin Ratio is a critical risk metric that shows how close your account is to liquidation. It's calculated as:
-
-**Margin Ratio = Maintenance Margin Requirement ÷ Account Equity × 100%**
-
-### Key Components:
-- **Maintenance Margin Requirement**: The minimum collateral needed to keep positions open
-- **Account Equity**: Your total account value including unrealized P&L
-- **Margin Ratio Percentage**: Shows your current risk level
-
-## Risk Level Indicators
-
-Roxom uses a tiered warning system to help traders manage their risk:
-
-### Normal Trading (0% - 79%)
-- **Status**: Safe trading zone
-- **Actions**: Full trading capabilities available
-- **Risk Level**: Low to moderate
-
-### Warning Zone (~80% - 99%)
-- **Status**: High risk warning activated
-- **Actions**: Consider reducing positions or adding collateral
-- **Risk Level**: High - approaching liquidation threshold
-
-### Liquidation Triggered (100%)
-- **Status**: Automatic liquidation begins
-- **Actions**: System takes control to close positions
-- **Risk Level**: Critical - liquidation in progress
-
-## Risk Management Features
-
-### Real-Time Monitoring
-- Continuous calculation using mark prices
-- Instant updates as market conditions change
-- Protection against price manipulation through mark price usage
-
-### Warning Systems
-- Proactive alerts at ~80% margin ratio
-- Clear visual indicators in trading interface
-- Email/SMS notifications (when configured)
-
-### Automatic Protection
-- Immediate liquidation trigger at 100% margin ratio
-- Systematic position closure to preserve remaining equity
-- Insurance Fund protection for shortfall scenarios
-
-## Best Practices for Risk Management
-
-### Monitoring Your Margin Ratio
-1. **Regular Checks**: Monitor margin ratio throughout trading sessions
-2. **Set Personal Limits**: Consider taking action well before 80% threshold
-3. **Understand Volatility**: Higher volatility increases liquidation risk
-
-### Managing Risk Exposure
-1. **Position Sizing**: Use appropriate position sizes for your account
-2. **Diversification**: Spread risk across multiple positions when possible
-3. **Stop Losses**: Implement stop-loss orders for additional protection
-4. **Collateral Management**: Maintain adequate collateral buffers
-
-### Emergency Procedures
-1. **Add Collateral**: Deposit additional BTC to improve margin ratio
-2. **Reduce Positions**: Close or reduce existing positions
-3. **Hedge Positions**: Consider opening offsetting positions
-4. **Monitor Mark Price**: Understand how mark price affects your calculations
+The Margin Ratio = (Maintenance Margin requirement) / (Account Equity). As this ratio rises toward 100%, the risk of liquidation grows. Roxom's system may issue a warning alert to the trader when Margin Ratio approaches a critical level (set default at \~80% the platform sends a UI notification or email suggesting that more collateral be added or the position reduced). This is a courtesy risk warning; traders should actively monitor their margin levels as this warnings may fail or be too late to act. Ultimately, if Margin Ratio hits 100%, the account has no free margin left and liquidation will be triggered.

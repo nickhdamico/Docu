@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Roxom API",
   "colors": {
-    "primary": "#2563EB",
-    "light": "#3B82F6", 
-    "dark": "#1E40AF"
+    "primary": "#9057F9",
+    "light": "#B084FC", 
+    "dark": "#7C3AED"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -81,14 +81,8 @@
       },
       {
         "tab": "Rulebook",
-        "href": "/rulebook",
+        "href": "/rulebook/about-roxom",
         "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "rulebook/index"
-            ]
-          },
           {
             "group": "Introduction",
             "pages": [
@@ -218,7 +212,7 @@
     },
     {
       "anchor": "Support",
-      "href": "mailto:support@roxom.io",
+      "href": "mailto:support@roxom.com",
       "icon": "question-circle"
     }
   ],

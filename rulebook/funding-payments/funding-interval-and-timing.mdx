@@ -1,8 +1,11 @@
 ---
-title: "Funding Interval and Timing"
-description: "Funding payments occur periodically and are debited/credited only for open posit"
+title: "Funding Interval & Timing"
+description: >-
+  Funding payments occur periodically & are debited/credited only for open
+  positions. Frequency of the funding payment may vary by contract, with default
+  being 8 hours.
 ---
 
-# Funding Interval and Timing
+By default, funding payments are exchanged **every 8 hours** for most contracts. Specifically, funding events occur three times a day at **00:00 UTC, 08:00 UTC, and 16:00 UTC**. All traders holding an open position at the moment of these timestamps will either pay or receive funding, depending on the sign of the funding rate and whether they are long or short. If a trader has no position at the scheduled time, they neither pay nor receive any funding. The funding amount is settled in BTC (since P\&L is in BTC).
 
-Funding payments occur periodically and are debited/credited only for open positions. Frequency of the funding payment may vary by contract, with default being 8 hours.
+> Note: The standard interval is 8 hours, but some contracts may have different funding frequencies as part of their specifications (for instance, certain instruments could fund every 4 hours or every 1 hour). Always check the [specific product details](../our-contracts-offering-and-specs) – any deviation from the 8h norm will be listed there.

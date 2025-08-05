@@ -1,8 +1,20 @@
 ---
 title: "Pricing & Leverage"
-description: "BTC-denominated Index Price calculation and leverage support for perpetual futures"
+description: >-
+  Here we define the quoting, how Roxom calculates the Index Price denominated
+  in BTC, & what leverage we support for our perpetual futures.
 ---
 
-# Pricing & Leverage
+### **Price Quotation**
 
-Here we define the quoting, how Roxom calculates the Index Price denominated in BTC, and what leverage we support for our perpetual futures.
+Prices are quoted in BTC per unit of the underlying. For example, if gold is trading around $3,000 and BTC around $100,000, the GOLD/BTC contract might trade near **0.03 BTC**. The minimum price increment (tick size) is set to a small fraction of BTC (e.g. 0.01 BTC) to allow fine price granularity.
+
+### **Index Calculation**
+
+Each contract's **Mark Price** is derived from a composite index that blends a high-quality price feed of the underlying asset with a robust BTC/USDT price feed:
+
+* The **base asset's price** is sourced from reliable markets (via Databento, with Pyth Network as a backup).&#x20;
+* The **BTC/USDT price** is calculated as a volume-weighted average across top exchanges (e.g. Binance, Bybit, OKX).
+*   To guard against outliers, any exchange feed that deviates >5% from the median is temporarily excluded until it comes back within 3% of the median for at least 5 minutes.
+
+    By blending multiple sources and applying strict price-protection rules, the Mark Price reflects a broad market consensus and resists distortion from bad data or manipulation.

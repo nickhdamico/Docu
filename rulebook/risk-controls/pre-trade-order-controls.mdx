@@ -1,8 +1,12 @@
 ---
 title: "Pre-Trade Order Controls"
-description: "Roxom employs comprehensive pre-trade and post-trade risk controls to maintain m"
+description: >-
+  Roxom employs comprehensive pre-trade & post-trade risk controls to maintain
+  market integrity & protect traders from abnormal events.
 ---
 
-# Pre-Trade Order Controls
-
-Roxom employs comprehensive pre-trade and post-trade risk controls to maintain market integrity and protect traders from abnormal events.
+* **Fair Mark Pricing:** As discussed, Roxom uses a **Mark Price** derived from external indices for all margin and liquidation calculations. This isn't exactly a "control" on trades, but it's a fundamental risk principle: traders are not liquidated or margined off possibly manipulated last prices.
+* **Price Band Limits (Pre-Trade):** To avoid absurd or fat-finger prices, Roxom sets **price bands** around the current market price for each contract. By default, no order can be placed more than **±50%** away from the current Mark Price of the contract. If a user submits an order with a price beyond these bands, the system will automatically reject it. _(Each contract can have its own band threshold; 50% is the default. Specific instruments might have tighter bands_ [_specified in their specs_](broken-reference)_)._&#x20;
+* **Maximum Order Size (Pre-Trade):** Roxom imposes a limit on the size of any single order to prevent an individual order from being so large that the market cannot safely absorb it. If a user tries to place an order larger than the allowed cap, the system will reject it. The specific **order size caps** are calibrated per instrument liquidity and can be adjusted by Roxom's risk committee as needed. At launch:
+  * **Market Order Size Cap:** **0.5 BTC** notional per single market order, _and_ the trade is limited by the slippage impact cap (as per instrument specs) as described earlier. Essentially, a market order will not execute more than 0.5 BTC worth, or beyond 2% price impact, whichever condition hits first. This prevents a single market order from consuming too much order book depth.
+  * **Limit Order Size Cap:** **2.5 BTC** notional per single limit order. Roxom allows a higher cap for limit orders since they add liquidity rather than taking it. A large limit order does not immediately move the market; in fact, it can help stabilize the order book by providing depth. But to manage risk, it's still capped at 2.5 BTC per order.

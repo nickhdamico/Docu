@@ -1,8 +1,20 @@
 ---
 title: "Funding Rate Calculation"
-description: "Roxom's funding rate combines an interest component with the premium/discount be"
+description: >-
+  Roxom's funding rate combines an interest component with the premium/discount
+  between perpetual & index prices, capped at ±3% per interval to prevent
+  extreme rates.
 ---
 
-# Funding Rate Calculation
+Roxom's funding rate is designed to reflect two components:
 
-Roxom's funding rate combines an interest component with the premium/discount between perpetual and index prices, capped at ±3% per interval to prevent extreme rates.
+1. **Interest Rate Component:** This accounts for the cost-of-carry difference between holding the underlying asset vs holding BTC. In Roxom's case, contracts are BTC-margined, so think of it as the difference in financing rates for the two sides (asset vs BTC). By default, Roxom sets a small baseline interest rate factor of **0.01% per 8 hours** (this can be adjusted if needed for different assets or market conditions, but 0.01% is the default).
+2. **Premium/Discount Component:** This is the primary driver of the funding rate. It measures the **difference between the perpetual's market price and the underlying index price**. If the perpetual is trading higher than the index (i.e. at a premium), the funding rate will be **positive** (longs will pay shorts). If the perpetual is below the index (at a discount), the funding rate will be **negative** (shorts pay longs). The magnitude of this component is essentially the percentage price discrepancy. For example, if the perp is 1% above the index, this component contributes roughly +1% (annualized to the period) to the funding rate for that interval.
+
+Roxom imposes a **cap** on the funding rate to prevent it from going to extreme levels. By default, the funding rate per interval is capped at **±3%**. _(Specific contracts might have their own cap defined, but 3% is the standard maximum funding rate for an 8-hour period)._
+
+The **formula** can be summarized as:
+
+$$Funding Rate = (Perpetual Price – Index Price) / Index Price + Interest Rate Adjustment$$
+
+\*_(with the result constrained to not exceed 3% or go below -3% for the period, unless an instrument specifies otherwise)._

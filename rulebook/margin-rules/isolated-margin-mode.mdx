@@ -1,8 +1,9 @@
 ---
 title: "Isolated Margin Mode"
-description: "Isolated Margin allocates collateral per position, limiting maximum loss to the "
+description: >-
+  Isolated Margin allocates collateral per position, limiting maximum loss to
+  the margin assigned to that specific position without affecting other
+  positions or account funds.
 ---
 
-# Isolated Margin Mode
-
-Isolated Margin allocates collateral per position, limiting maximum loss to the margin assigned to that specific position without affecting other positions or account funds.
+Isolated Margin mode means the margin is allocated per position. Each position draws only from the collateral explicitly assigned to it. If that position's equity falls below maintenance, it will liquidate, but this does not automatically affect other positions or the rest of the account's funds. Isolated margin allows a trader to "isolate" the risk of each position – the maximum loss is limited to the margin put into that one position.
