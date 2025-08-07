@@ -11,7 +11,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "API & WebSocket",
+        "tab": "HTTP API",
         "href": "/reference",
         "groups": [
           {
@@ -29,7 +29,6 @@
               "reference/ping"
             ]
           },
-
           {
             "group": "Market Data",
             "pages": [
@@ -62,14 +61,40 @@
             "pages": [
               "reference/api-reference/positions/list"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "WebSocket API",
+        "href": "/reference/websockets",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "reference/websockets/overview"
+            ]
           },
           {
-            "group": "WebSocket API",
+            "group": "Connection",
             "pages": [
-              "reference/websockets/overview",
+              "reference/websockets/connection",
+              "reference/websockets/connection/basic",
+              "reference/websockets/connection/authentication",
+              "reference/websockets/connection/management"
+            ]
+          },
+          {
+            "group": "Market Data",
+            "pages": [
               "reference/websockets/market-data",
+              "reference/websockets/market-data/level1"
+            ]
+          },
+          {
+            "group": "Account Updates",
+            "pages": [
               "reference/websockets/account-updates",
-              "reference/websockets/connection"
+              "reference/websockets/account-updates/orders"
             ]
           }
         ]

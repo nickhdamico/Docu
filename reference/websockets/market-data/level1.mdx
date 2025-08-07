@@ -1,0 +1,519 @@
+---
+title: "Level 1 Quotes"
+description: "Best bid/ask prices and quantities in real-time"
+---
+
+## Overview
+
+Level 1 quotes provide real-time best bid and ask prices with quantities for all supported trading pairs. This is the most essential market data stream for displaying current market prices and spreads.
+
+## Channel Information
+
+| Property | Value |
+|----------|-------|
+| **Channel Name** | `level1` |
+| **Authentication** | Not required |
+| **Update Frequency** | Real-time |
+| **Data Type** | Current best bid/ask |
+
+## Subscribe to Level 1 Data
+
+<RequestExample>
+```json Subscribe
+{
+  "op": "subscribe",
+  "args": [
+    { "channel": "level1", "symbol": "SP500-BTC" },
+    { "channel": "level1", "symbol": "GLD-BTC" }
+  ]
+}
+```
+</RequestExample>
+
+## Response Format
+
+<ResponseExample>
+```json Level 1 Snapshot
+{
+  "topic": "level1.SP500-BTC",
+  "type": "snapshot",
+  "createdTime": 1640995200000000000,
+  "data": {
+    "symbol": "SP500-BTC",
+    "bid": ["0.00432450", "0.5"],
+    "ask": ["0.00432500", "0.3"],
+    "timestamp": 1640995200000000000
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Level 1 order book data
+
+  <Expandable title="Level 1 properties">
+    <ResponseField name="symbol" type="string">
+      Trading pair symbol
+    </ResponseField>
+    
+    <ResponseField name="bid" type="array">
+      [price, quantity] - Best bid price and size
+    </ResponseField>
+    
+    <ResponseField name="ask" type="array">
+      [price, quantity] - Best ask price and size  
+    </ResponseField>
+    
+    <ResponseField name="timestamp" type="integer">
+      Update timestamp in nanoseconds
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Implementation Examples
+
+### JavaScript Level 1 Handler
+
+```javascript
+class Level1Handler {
+  constructor() {
+    this.quotes = {};
+    this.listeners = [];
+  }
+
+  connect() {
+    this.ws = new WebSocket('wss://ws.roxom.com/ws');
+    
+    this.ws.onopen = () => {
+      console.log('Connected to Level 1 stream');
+      this.subscribeToSymbols(['SP500-BTC', 'GLD-BTC', 'OIL-BTC']);
+    };
+
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      if (data.topic && data.topic.startsWith('level1.')) {
+        this.handleLevel1Update(data);
+      }
+    };
+  }
+
+  subscribeToSymbols(symbols) {
+    const args = symbols.map(symbol => ({
+      channel: 'level1',
+      symbol: symbol
+    }));
+
+    this.ws.send(JSON.stringify({
+      op: 'subscribe',
+      args: args
+    }));
+  }
+
+  handleLevel1Update(message) {
+    const symbol = message.data.symbol;
+    const bid = message.data.bid;
+    const ask = message.data.ask;
+    const timestamp = message.data.timestamp;
+
+    // Update local quote cache
+    this.quotes[symbol] = {
+      bid: {
+        price: parseFloat(bid[0]),
+        size: parseFloat(bid[1])
+      },
+      ask: {
+        price: parseFloat(ask[0]),
+        size: parseFloat(ask[1])
+      },
+      spread: parseFloat(ask[0]) - parseFloat(bid[0]),
+      timestamp: timestamp,
+      lastUpdated: Date.now()
+    };
+
+    // Calculate additional metrics
+    const quote = this.quotes[symbol];
+    quote.midPrice = (quote.bid.price + quote.ask.price) / 2;
+    quote.spreadPercent = (quote.spread / quote.midPrice) * 100;
+
+    console.log(`${symbol} | Bid: ${quote.bid.price} (${quote.bid.size}) | Ask: ${quote.ask.price} (${quote.ask.size}) | Spread: ${quote.spread.toFixed(2)} (${quote.spreadPercent.toFixed(3)}%)`);
+
+    // Notify listeners
+    this.notifyListeners(symbol, quote);
+
+    // Update UI if available
+    this.updateUI(symbol, quote);
+  }
+
+  addListener(callback) {
+    this.listeners.push(callback);
+  }
+
+  notifyListeners(symbol, quote) {
+    this.listeners.forEach(callback => {
+      try {
+        callback(symbol, quote);
+      } catch (error) {
+        console.error('Listener error:', error);
+      }
+    });
+  }
+
+  updateUI(symbol, quote) {
+    // Update DOM elements if available
+    const bidElement = document.getElementById(`${symbol}-bid`);
+    const askElement = document.getElementById(`${symbol}-ask`);
+    const spreadElement = document.getElementById(`${symbol}-spread`);
+
+    if (bidElement) {
+      bidElement.textContent = `${quote.bid.price} (${quote.bid.size})`;
+    }
+
+    if (askElement) {
+      askElement.textContent = `${quote.ask.price} (${quote.ask.size})`;
+    }
+
+    if (spreadElement) {
+      spreadElement.textContent = `${quote.spread.toFixed(2)}`;
+    }
+  }
+
+  getBestPrices(symbol) {
+    return this.quotes[symbol] || null;
+  }
+
+  getAllQuotes() {
+    return { ...this.quotes };
+  }
+
+  calculateSpread(symbol) {
+    const quote = this.quotes[symbol];
+    if (!quote) return null;
+
+    return {
+      absolute: quote.spread,
+      percentage: quote.spreadPercent,
+      basisPoints: quote.spreadPercent * 100
+    };
+  }
+}
+
+// Usage
+const level1Handler = new Level1Handler();
+
+level1Handler.addListener((symbol, quote) => {
+  // Custom logic for quote updates
+  if (quote.spreadPercent < 0.01) {
+    console.log(`🟢 Tight spread on ${symbol}: ${quote.spreadPercent.toFixed(4)}%`);
+  }
+});
+
+level1Handler.connect();
+```
+
+### Python Level 1 Monitor
+
+```python
+import websocket
+import json
+from typing import Dict, Any, Callable
+from datetime import datetime
+
+class Level1Monitor:
+    def __init__(self):
+        self.quotes: Dict[str, Dict] = {}
+        self.listeners: List[Callable] = []
+        self.ws = None
+        
+    def connect(self):
+        self.ws = websocket.WebSocketApp(
+            "wss://ws.roxom.com/ws",
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close
+        )
+        
+        self.ws.run_forever()
+    
+    def on_open(self, ws):
+        print("📡 Connected to Level 1 stream")
+        self.subscribe_to_symbols(['SP500-BTC', 'GLD-BTC', 'OIL-BTC'])
+    
+    def subscribe_to_symbols(self, symbols):
+        subscribe_msg = {
+            "op": "subscribe",
+            "args": [{"channel": "level1", "symbol": symbol} for symbol in symbols]
+        }
+        self.ws.send(json.dumps(subscribe_msg))
+    
+    def on_message(self, ws, message):
+        try:
+            data = json.loads(message)
+            
+            if data.get('topic', '').startswith('level1.'):
+                self.handle_level1_update(data)
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON decode error: {e}")
+    
+    def handle_level1_update(self, message):
+        symbol = message['data']['symbol']
+        bid = message['data']['bid']
+        ask = message['data']['ask']
+        timestamp = message['data']['timestamp']
+        
+        # Parse bid/ask data
+        bid_price, bid_size = float(bid[0]), float(bid[1])
+        ask_price, ask_size = float(ask[0]), float(ask[1])
+        
+        # Calculate derived values
+        spread = ask_price - bid_price
+        mid_price = (bid_price + ask_price) / 2
+        spread_percent = (spread / mid_price) * 100 if mid_price > 0 else 0
+        
+        # Update quote cache
+        self.quotes[symbol] = {
+            'bid_price': bid_price,
+            'bid_size': bid_size,
+            'ask_price': ask_price,
+            'ask_size': ask_size,
+            'spread': spread,
+            'mid_price': mid_price,
+            'spread_percent': spread_percent,
+            'timestamp': timestamp,
+            'last_updated': datetime.now()
+        }
+        
+        print(f"{symbol} | Bid: {bid_price:.6f} ({bid_size}) | Ask: {ask_price:.6f} ({ask_size}) | Spread: {spread:.6f} ({spread_percent:.3f}%)")
+        
+        # Notify listeners
+        self.notify_listeners(symbol, self.quotes[symbol])
+        
+        # Check for alerts
+        self.check_spread_alerts(symbol, spread_percent)
+    
+    def add_listener(self, callback):
+        self.listeners.append(callback)
+    
+    def notify_listeners(self, symbol, quote):
+        for callback in self.listeners:
+            try:
+                callback(symbol, quote)
+            except Exception as e:
+                print(f"❌ Listener error: {e}")
+    
+    def check_spread_alerts(self, symbol, spread_percent):
+        if spread_percent < 0.01:
+            print(f"🟢 Tight spread on {symbol}: {spread_percent:.4f}%")
+        elif spread_percent > 1.0:
+            print(f"🟡 Wide spread on {symbol}: {spread_percent:.3f}%")
+    
+    def get_quote(self, symbol):
+        return self.quotes.get(symbol)
+    
+    def get_all_quotes(self):
+        return self.quotes.copy()
+    
+    def get_best_prices(self):
+        """Get best prices across all symbols"""
+        if not self.quotes:
+            return None
+            
+        best_bid = max(self.quotes.values(), key=lambda q: q['bid_price'])
+        best_ask = min(self.quotes.values(), key=lambda q: q['ask_price'])
+        
+        return {
+            'best_bid': best_bid,
+            'best_ask': best_ask,
+            'cross_spread': best_ask['ask_price'] - best_bid['bid_price']
+        }
+    
+    def on_error(self, ws, error):
+        print(f"🚨 WebSocket error: {error}")
+    
+    def on_close(self, ws, close_status_code, close_msg):
+        print("❌ Level 1 connection closed")
+
+# Usage
+monitor = Level1Monitor()
+
+# Add custom quote handler
+def quote_handler(symbol, quote):
+    # Custom trading logic
+    if quote['spread_percent'] < 0.05:  # Very tight spread
+        print(f"🚀 Potential arbitrage opportunity on {symbol}")
+
+monitor.add_listener(quote_handler)
+monitor.connect()
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Price Display">
+    Display current market prices in trading interfaces with real-time updates for best bid/ask prices and spreads.
+    
+    ```javascript
+    function updatePriceDisplay(symbol, quote) {
+      document.getElementById(`${symbol}-bid`).textContent = quote.bid.price.toFixed(6);
+      document.getElementById(`${symbol}-ask`).textContent = quote.ask.price.toFixed(6);
+      document.getElementById(`${symbol}-spread`).textContent = `${quote.spreadPercent.toFixed(3)}%`;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Spread Monitoring">
+    Monitor spreads across symbols to identify arbitrage opportunities or liquidity conditions.
+    
+    ```javascript
+    function monitorSpreads(symbol, quote) {
+      if (quote.spreadPercent < 0.01) {
+        console.log(`Tight spread alert: ${symbol} - ${quote.spreadPercent.toFixed(4)}%`);
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Market Making">
+    Use level 1 data to adjust market making strategies based on current spreads and market conditions.
+    
+    ```javascript
+    function adjustMarketMaking(symbol, quote) {
+      const targetSpread = 0.02; // 2 basis points
+      
+      if (quote.spreadPercent > targetSpread) {
+        // Opportunity to provide liquidity
+        placeMarketMakingOrders(symbol, quote);
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Price Alerts">
+    Set up price alerts based on best bid/ask movements.
+    
+    ```javascript
+    function checkPriceAlerts(symbol, quote) {
+      const alerts = getPriceAlerts(symbol);
+      
+      alerts.forEach(alert => {
+        if (alert.type === 'bid_above' && quote.bid.price >= alert.price) {
+          triggerAlert(`${symbol} bid reached ${alert.price}`);
+        }
+      });
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Considerations
+
+<AccordionGroup>
+  <Accordion title="Update Frequency">
+    Level 1 updates are real-time and can be high frequency during active trading periods. Consider throttling UI updates:
+    
+    ```javascript
+    class ThrottledLevel1Handler {
+      constructor(throttleMs = 100) {
+        this.throttleMs = throttleMs;
+        this.pendingUpdates = {};
+        this.updateTimer = null;
+      }
+      
+      handleLevel1Update(message) {
+        const symbol = message.data.symbol;
+        this.pendingUpdates[symbol] = message;
+        
+        if (!this.updateTimer) {
+          this.updateTimer = setTimeout(() => {
+            this.processPendingUpdates();
+            this.updateTimer = null;
+          }, this.throttleMs);
+        }
+      }
+      
+      processPendingUpdates() {
+        Object.values(this.pendingUpdates).forEach(message => {
+          this.processUpdate(message);
+        });
+        this.pendingUpdates = {};
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Memory Management">
+    For long-running applications, manage memory by limiting quote history:
+    
+    ```javascript
+    class MemoryEfficientQuotes {
+      constructor(maxHistory = 100) {
+        this.quotes = {};
+        this.maxHistory = maxHistory;
+      }
+      
+      updateQuote(symbol, quote) {
+        if (!this.quotes[symbol]) {
+          this.quotes[symbol] = {
+            current: null,
+            history: []
+          };
+        }
+        
+        // Store previous quote in history
+        if (this.quotes[symbol].current) {
+          this.quotes[symbol].history.push(this.quotes[symbol].current);
+          
+          // Limit history size
+          if (this.quotes[symbol].history.length > this.maxHistory) {
+            this.quotes[symbol].history.shift();
+          }
+        }
+        
+        this.quotes[symbol].current = quote;
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+Common Level 1 stream errors and solutions:
+
+<AccordionGroup>
+  <Accordion title="Invalid Symbol">
+    **Error**: Subscription rejected for unknown trading pair
+    
+    **Solution**: Verify symbol format matches exactly: `SP500-BTC`, `GLD-BTC`, `OIL-BTC`
+  </Accordion>
+
+  <Accordion title="Stale Data">
+    **Error**: Quotes not updating or delayed
+    
+    **Solution**: Check connection health and implement staleness detection:
+    
+    ```javascript
+    function checkDataStaleness(quote, maxAgeMs = 5000) {
+      const age = Date.now() - quote.lastUpdated;
+      if (age > maxAgeMs) {
+        console.warn(`Stale data for ${symbol}: ${age}ms old`);
+        return true;
+      }
+      return false;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Connection Issues">
+    **Error**: Intermittent connection drops
+    
+    **Solution**: Implement reconnection logic and quote cache validation
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Learn about [Trade Executions](/reference/websockets/market-data/trades) for real-time trade data
+- Explore [Order Book Depth](/reference/websockets/market-data/depth) for multi-level market data
+- Review [Connection Management](/reference/websockets/connection/management) for reliable streaming

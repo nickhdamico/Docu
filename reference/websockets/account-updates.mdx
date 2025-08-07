@@ -5,7 +5,7 @@ description: "Real-time account and order updates via WebSocket"
 
 ## Overview
 
-Receive real-time updates for your account activity through authenticated WebSocket connections. Account streams are automatically enabled when you connect with valid API credentials.
+Receive real-time updates for your account activity through authenticated WebSocket connections. Account streams are automatically enabled when you connect with valid API credentials and provide comprehensive coverage of all account-related events.
 
 <Warning>
   Account update streams require authentication. You must include valid API credentials in your WebSocket connection headers.
@@ -13,711 +13,202 @@ Receive real-time updates for your account activity through authenticated WebSoc
 
 ## Available Private Streams
 
-| Channel | Description | Auto-Enabled |
-|---------|-------------|--------------|
-| `orders` | Order status changes and fills | ✅ Yes |
-| `balance` | Account balance updates | ✅ Yes |
-| `positions` | Position changes and PnL | ✅ Yes |
-| `account` | Account-level notifications | ✅ Yes |
-
-## Order Updates (`orders`)
-
-Real-time updates for order status changes, executions, and cancellations.
-
-### Order Update Format
-
-<ResponseExample>
-```json Order Update
-{
-  "type": "order",
-  "data": {
-    "orderId": "01234567-89ab-7def-8123-456789abcdea",
-    "accountId": "01234567-89ab-7def-8123-456789abcdef", 
-    "symbol": "SP500-BTC",
-    "status": "filled",
-    "remainingQty": "0.000",
-    "executedQty": "0.001", 
-    "avgPx": "50000.00",
-    "timestamp": 1640995200000000000
-  }
-}
-```
-</ResponseExample>
-
-<ResponseField name="data" type="object">
-  Order update details
-
-  <Expandable title="Order update properties">
-    <ResponseField name="orderId" type="string">
-      Unique order identifier
-    </ResponseField>
-    
-    <ResponseField name="accountId" type="string">
-      Account identifier this order belongs to
-    </ResponseField>
-    
-    <ResponseField name="symbol" type="string">
-      Trading pair for this order
-    </ResponseField>
-    
-    <ResponseField name="status" type="string">
-      Current order status (see status values below)
-    </ResponseField>
-    
-    <ResponseField name="remainingQty" type="string">
-      Remaining quantity to be filled
-    </ResponseField>
-    
-    <ResponseField name="executedQty" type="string">
-      Total quantity that has been executed
-    </ResponseField>
-    
-    <ResponseField name="avgPx" type="string">
-      Average execution price for filled quantity
-    </ResponseField>
-    
-    <ResponseField name="timestamp" type="integer">
-      Update timestamp in nanoseconds
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-### Order Status Values
-
-<AccordionGroup>
-  <Accordion title="Active Statuses">
-    **pendingsubmit**: Order created but not yet submitted to matching engine
-    
-    **waitingtrigger**: Order waiting for trigger condition (stop/take profit orders)
-    
-    **submitted**: Order submitted to matching engine and waiting for execution
-  </Accordion>
-
-  <Accordion title="Execution Statuses">
-    **partiallyfilled**: Order partially executed, remainder still active
-    
-    **filled**: Order completely executed
-    
-    **partiallyfilledcancelled**: Order partially filled then cancelled
-  </Accordion>
-
-  <Accordion title="Final Statuses">
-    **cancelled**: Order cancelled by user or system
-    
-    **rejected**: Order rejected (insufficient balance, invalid parameters, etc.)
-    
-    **inactive**: Order is inactive due to account restrictions
-    
-    **pendingcancel**: Order cancellation requested but not yet confirmed
-  </Accordion>
-</AccordionGroup>
-
-### Order Update Implementation
-
-```javascript
-class OrderManager {
-  constructor(apiKey) {
-    this.apiKey = apiKey;
-    this.orders = {};
-    this.ws = null;
-  }
-
-  connect() {
-    this.ws = new WebSocket('wss://ws.roxom.com/ws', [], {
-      headers: {
-        'X-API-Key': this.apiKey,
-        'X-API-Timestamp': Date.now().toString()
-      }
-    });
-
-    this.ws.onopen = () => {
-      console.log('Connected to order updates stream');
-    };
-
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'order') {
-        this.handleOrderUpdate(data.data);
-      }
-    };
-  }
-
-  handleOrderUpdate(orderData) {
-    const orderId = orderData.orderId;
-    const status = orderData.status;
-    const symbol = orderData.symbol;
-
-    // Update local order tracking
-    this.orders[orderId] = orderData;
-
-    console.log(`Order Update: ${orderId} (${symbol}) -> ${status}`);
-
-    // Handle different order statuses
-    switch (status) {
-      case 'submitted':
-        this.onOrderSubmitted(orderData);
-        break;
-      case 'partiallyfilled':
-        this.onOrderPartiallyFilled(orderData);
-        break;
-      case 'filled':
-        this.onOrderFilled(orderData);
-        break;
-      case 'cancelled':
-        this.onOrderCancelled(orderData);
-        break;
-      case 'rejected':
-        this.onOrderRejected(orderData);
-        break;
-    }
-  }
-
-  onOrderSubmitted(order) {
-    console.log(`✅ Order ${order.orderId} submitted to market`);
-    this.updateUI(order.orderId, 'pending');
-  }
-
-  onOrderPartiallyFilled(order) {
-    const fillPercent = (parseFloat(order.executedQty) / 
-      (parseFloat(order.executedQty) + parseFloat(order.remainingQty))) * 100;
-    
-    console.log(`🟡 Order ${order.orderId} ${fillPercent.toFixed(1)}% filled at avg price ${order.avgPx}`);
-    this.updateUI(order.orderId, 'partial', fillPercent);
-  }
-
-  onOrderFilled(order) {
-    console.log(`🟢 Order ${order.orderId} completely filled at avg price ${order.avgPx}`);
-    this.updateUI(order.orderId, 'filled');
-    
-    // Trigger any post-fill logic
-    this.onTradingComplete(order);
-  }
-
-  onOrderCancelled(order) {
-    console.log(`🔴 Order ${order.orderId} cancelled`);
-    this.updateUI(order.orderId, 'cancelled');
-  }
-
-  onOrderRejected(order) {
-    console.log(`❌ Order ${order.orderId} rejected`);
-    this.updateUI(order.orderId, 'rejected');
-    
-    // Handle rejection reasons
-    this.handleOrderRejection(order);
-  }
-
-  updateUI(orderId, status, progress = null) {
-    // Update your application UI
-    const element = document.getElementById(`order-${orderId}`);
-    if (element) {
-      element.className = `order-status-${status}`;
-      if (progress) {
-        element.querySelector('.progress').style.width = `${progress}%`;
-      }
-    }
-  }
-
-  onTradingComplete(order) {
-    // Implement post-trade logic
-    console.log(`Trade completed: ${order.executedQty} ${order.symbol} at ${order.avgPx}`);
-    
-    // Could trigger:
-    // - Portfolio rebalancing
-    // - Risk management checks  
-    // - Profit/loss calculations
-    // - Next order in strategy
-  }
-
-  handleOrderRejection(order) {
-    // Implement rejection handling
-    console.log(`Investigating rejection for order ${order.orderId}`);
-    
-    // Common rejection reasons:
-    // - Insufficient balance
-    // - Invalid price/quantity
-    // - Market closed
-    // - Symbol not tradeable
-  }
-
-  getOrderStatus(orderId) {
-    return this.orders[orderId] || null;
-  }
-
-  getAllActiveOrders() {
-    return Object.values(this.orders).filter(order => 
-      ['submitted', 'partiallyfilled', 'pendingsubmit'].includes(order.status)
-    );
-  }
-}
-
-// Usage
-const orderManager = new OrderManager('your-api-key');
-orderManager.connect();
-```
-
-## Balance Updates (`balance`)
-
-Real-time account balance changes from trades, fees, deposits, and withdrawals.
-
-### Balance Update Format
-
-<ResponseExample>
-```json Balance Update
-{
-  "type": "balance",
-  "data": {
-    "accountId": "01234567-89ab-7def-8123-456789abcdef",
-    "balanceBefore": "1.50000000",
-    "balanceAfter": "1.49950000", 
-    "amount": "-0.00050000",
-    "units": "BTC",
-    "updateType": "ordersettle",
-    "timestamp": 1640995200000000000
-  }
-}
-```
-</ResponseExample>
-
-<ResponseField name="data" type="object">
-  Balance update details
-
-  <Expandable title="Balance update properties">
-    <ResponseField name="accountId" type="string">
-      Account identifier
-    </ResponseField>
-    
-    <ResponseField name="balanceBefore" type="string">
-      Balance before the update
-    </ResponseField>
-    
-    <ResponseField name="balanceAfter" type="string">
-      Balance after the update
-    </ResponseField>
-    
-    <ResponseField name="amount" type="string">
-      Change amount (positive for increase, negative for decrease)
-    </ResponseField>
-    
-    <ResponseField name="units" type="string">
-      Asset symbol (BTC, USD, ETH, etc.)
-    </ResponseField>
-    
-    <ResponseField name="updateType" type="string">
-      Type of balance update (see update types below)
-    </ResponseField>
-    
-    <ResponseField name="timestamp" type="integer">
-      Update timestamp in nanoseconds
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-### Balance Update Types
-
-<AccordionGroup>
-  <Accordion title="Trading Updates">
-    **ordersettle**: Balance change from order settlement/execution
-    
-    **tradingfee**: Trading fees charged on order execution
-    
-    **fundingfee**: Funding fees for leveraged positions
-  </Accordion>
-
-  <Accordion title="Transfer Updates">
-    **transfer**: Internal transfer between accounts or wallets
-    
-    **deposit**: External deposits to account
-    
-    **withdrawal**: External withdrawals from account
-  </Accordion>
-
-  <Accordion title="System Updates">
-    **insurancefundreimbursement**: Reimbursement from insurance fund
-    
-    **adjustment**: Administrative balance adjustments
-    
-    **bonus**: Promotional bonuses or rewards
-  </Accordion>
-</AccordionGroup>
-
-### Balance Tracking Implementation
-
-```python
-import websocket
-import json
-from collections import defaultdict
-from decimal import Decimal
-
-class BalanceTracker:
-    def __init__(self, api_key):
-        self.api_key = api_key
-        self.balances = defaultdict(Decimal)
-        self.balance_history = []
-        self.ws = None
-        
-    def connect(self):
-        headers = {
-            'X-API-Key': self.api_key,
-            'X-API-Timestamp': str(int(time.time() * 1000))
-        }
-        
-        self.ws = websocket.WebSocketApp(
-            "wss://ws.roxom.com/ws",
-            header=headers,
-            on_open=self.on_open,
-            on_message=self.on_message,
-            on_error=self.on_error,
-            on_close=self.on_close
-        )
-        
-        self.ws.run_forever()
-    
-    def on_open(self, ws):
-        print("Connected to balance updates stream")
-        
-    def on_message(self, ws, message):
-        data = json.loads(message)
-        
-        if data.get('type') == 'balance':
-            self.handle_balance_update(data['data'])
-    
-    def handle_balance_update(self, balance_data):
-        account_id = balance_data['accountId']
-        asset = balance_data['units']
-        amount = Decimal(balance_data['amount'])
-        update_type = balance_data['updateType']
-        new_balance = Decimal(balance_data['balanceAfter'])
-        
-        # Update current balance
-        self.balances[asset] = new_balance
-        
-        # Store balance history
-        self.balance_history.append({
-            'timestamp': balance_data['timestamp'],
-            'asset': asset,
-            'amount': amount,
-            'balance': new_balance,
-            'type': update_type
-        })
-        
-        # Keep only last 1000 entries
-        if len(self.balance_history) > 1000:
-            self.balance_history = self.balance_history[-1000:]
-        
-        print(f"Balance Update: {asset} {amount:+} -> {new_balance} ({update_type})")
-        
-        # Handle specific update types
-        if update_type == 'ordersettle':
-            self.handle_trade_settlement(balance_data)
-        elif update_type == 'tradingfee':
-            self.handle_trading_fee(balance_data)
-        elif update_type in ['deposit', 'withdrawal']:
-            self.handle_transfer(balance_data)
-        
-        # Check for significant balance changes
-        self.check_balance_alerts(asset, amount)
-    
-    def handle_trade_settlement(self, balance_data):
-        asset = balance_data['units']
-        amount = Decimal(balance_data['amount'])
-        
-        if amount > 0:
-            print(f"📈 Received {amount} {asset} from trade settlement")
-        else:
-            print(f"📉 Paid {abs(amount)} {asset} for trade settlement")
-    
-    def handle_trading_fee(self, balance_data):
-        asset = balance_data['units']
-        fee = abs(Decimal(balance_data['amount']))
-        print(f"💸 Trading fee: {fee} {asset}")
-        
-        # Track total fees paid
-        self.track_fees(asset, fee)
-    
-    def handle_transfer(self, balance_data):
-        asset = balance_data['units']
-        amount = Decimal(balance_data['amount'])
-        update_type = balance_data['updateType']
-        
-        if update_type == 'deposit':
-            print(f"💰 Deposit: {amount} {asset}")
-        else:  # withdrawal
-            print(f"🏧 Withdrawal: {abs(amount)} {asset}")
-    
-    def check_balance_alerts(self, asset, amount):
-        # Alert on large balance changes
-        if abs(amount) > Decimal('1000'):  # Threshold for USD
-            print(f"🚨 Large balance change: {amount} {asset}")
-        
-        # Alert on low balances
-        current_balance = self.balances[asset]
-        if asset == 'USD' and current_balance < Decimal('100'):
-            print(f"⚠️  Low USD balance: {current_balance}")
-        elif asset == 'BTC' and current_balance < Decimal('0.001'):
-            print(f"⚠️  Low BTC balance: {current_balance}")
-    
-    def get_current_balances(self):
-        return dict(self.balances)
-    
-    def get_balance_history(self, asset=None, hours=24):
-        import time
-        cutoff_time = int((time.time() - hours * 3600) * 1000000000)  # nanoseconds
-        
-        filtered_history = [
-            entry for entry in self.balance_history
-            if entry['timestamp'] >= cutoff_time
-        ]
-        
-        if asset:
-            filtered_history = [
-                entry for entry in filtered_history
-                if entry['asset'] == asset
-            ]
-        
-        return filtered_history
-    
-    def calculate_pnl(self, hours=24):
-        """Calculate P&L over specified hours"""
-        history = self.get_balance_history(hours=hours)
-        
-        pnl_by_asset = defaultdict(Decimal)
-        
-        for entry in history:
-            if entry['type'] in ['ordersettle', 'tradingfee']:
-                pnl_by_asset[entry['asset']] += entry['amount']
-        
-        return dict(pnl_by_asset)
-
-# Usage
-tracker = BalanceTracker('your-api-key')
-tracker.connect()
-```
-
-## Position Updates
-
-Real-time position changes and profit/loss updates.
-
-### Position Update Format
-
-<ResponseExample>
-```json Position Update
-{
-  "type": "position",
-  "data": {
-    "accountId": "01234567-89ab-7def-8123-456789abcdef",
-    "symbol": "SP500-BTC",
-    "positionSize": "0.5",
-    "avgEntryPrice": "49500.00",
-    "markPrice": "50100.00",
-    "unrealizedPnl": "300.00",
-    "realizedPnl": "0.00",
-    "timestamp": 1640995200000000000
-  }
-}
-```
-</ResponseExample>
-
-### Position Monitoring
-
-```javascript
-class PositionMonitor {
-  constructor(apiKey) {
-    this.apiKey = apiKey;
-    this.positions = {};
-    this.pnlHistory = [];
-  }
-
-  connect() {
-    this.ws = new WebSocket('wss://ws.roxom.com/ws', [], {
-      headers: {
-        'X-API-Key': this.apiKey,
-        'X-API-Timestamp': Date.now().toString()
-      }
-    });
-
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'position') {
-        this.handlePositionUpdate(data.data);
-      }
-    };
-  }
-
-  handlePositionUpdate(positionData) {
-    const symbol = positionData.symbol;
-    const unrealizedPnl = parseFloat(positionData.unrealizedPnl);
-    const positionSize = parseFloat(positionData.positionSize);
-
-    this.positions[symbol] = positionData;
-
-    console.log(`Position Update: ${symbol}`);
-    console.log(`  Size: ${positionSize}`);
-    console.log(`  Unrealized P&L: $${unrealizedPnl.toFixed(2)}`);
-
-    // Risk management alerts
-    this.checkRiskLimits(symbol, positionData);
-
-    // Update portfolio metrics
-    this.updatePortfolioMetrics();
-  }
-
-  checkRiskLimits(symbol, position) {
-    const unrealizedPnl = parseFloat(position.unrealizedPnl);
-    const positionValue = parseFloat(position.positionSize) * parseFloat(position.markPrice);
-
-    // Stop loss alert
-    if (unrealizedPnl < -1000) {
-      console.log(`🚨 Stop Loss Alert: ${symbol} P&L: $${unrealizedPnl.toFixed(2)}`);
-    }
-
-    // Large position alert
-    if (Math.abs(positionValue) > 50000) {
-      console.log(`⚠️  Large Position: ${symbol} Value: $${positionValue.toFixed(2)}`);
-    }
-  }
-
-  updatePortfolioMetrics() {
-    const totalUnrealizedPnl = Object.values(this.positions)
-      .reduce((sum, pos) => sum + parseFloat(pos.unrealizedPnl), 0);
-
-    console.log(`Portfolio Unrealized P&L: $${totalUnrealizedPnl.toFixed(2)}`);
-  }
-}
-
-const positionMonitor = new PositionMonitor('your-api-key');
-positionMonitor.connect();
-```
-
-## Complete Account Monitor
-
-Combined monitoring for all account streams:
-
-```javascript
-class ComprehensiveAccountMonitor {
-  constructor(apiKey) {
-    this.apiKey = apiKey;
-    this.orders = {};
-    this.balances = {};
-    this.positions = {};
-    this.ws = null;
-  }
-
-  connect() {
-    this.ws = new WebSocket('wss://ws.roxom.com/ws', [], {
-      headers: {
-        'X-API-Key': this.apiKey,
-        'X-API-Timestamp': Date.now().toString()
-      }
-    });
-
-    this.ws.onopen = () => {
-      console.log('🔗 Connected to Roxom account streams');
-    };
-
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.routeMessage(data);
-    };
-
-    this.ws.onclose = () => {
-      console.log('❌ Disconnected from account streams');
-      this.reconnect();
-    };
-  }
-
-  routeMessage(data) {
-    switch (data.type) {
-      case 'order':
-        this.handleOrderUpdate(data.data);
-        break;
-      case 'balance':
-        this.handleBalanceUpdate(data.data);
-        break;
-      case 'position':
-        this.handlePositionUpdate(data.data);
-        break;
-      default:
-        console.log('Unknown message type:', data.type);
-    }
-  }
-
-  handleOrderUpdate(orderData) {
-    const orderId = orderData.orderId;
-    this.orders[orderId] = orderData;
-    
-    console.log(`📋 Order ${orderId}: ${orderData.status}`);
-    this.updateDashboard();
-  }
-
-  handleBalanceUpdate(balanceData) {
-    const asset = balanceData.units;
-    this.balances[asset] = balanceData;
-    
-    console.log(`💰 Balance ${asset}: ${balanceData.balanceAfter}`);
-    this.updateDashboard();
-  }
-
-  handlePositionUpdate(positionData) {
-    const symbol = positionData.symbol;
-    this.positions[symbol] = positionData;
-    
-    console.log(`📊 Position ${symbol}: ${positionData.unrealizedPnl} P&L`);
-    this.updateDashboard();
-  }
-
-  updateDashboard() {
-    // Update your trading dashboard with latest data
-    this.renderAccountSummary();
-  }
-
-  renderAccountSummary() {
-    const activeOrders = Object.values(this.orders)
-      .filter(order => ['submitted', 'partiallyfilled'].includes(order.status)).length;
-    
-    const totalBalance = Object.values(this.balances)
-      .reduce((sum, balance) => {
-        if (balance.units === 'USD') {
-          return sum + parseFloat(balance.balanceAfter);
-        }
-        return sum;
-      }, 0);
-
-    const totalPnl = Object.values(this.positions)
-      .reduce((sum, pos) => sum + parseFloat(pos.unrealizedPnl), 0);
-
-    console.log('\n📈 Account Summary:');
-    console.log(`   Active Orders: ${activeOrders}`);
-    console.log(`   USD Balance: $${totalBalance.toFixed(2)}`);
-    console.log(`   Unrealized P&L: $${totalPnl.toFixed(2)}`);
-    console.log('───────────────────────────────');
-  }
-
-  reconnect() {
-    setTimeout(() => {
-      console.log('🔄 Attempting to reconnect...');
-      this.connect();
-    }, 5000);
-  }
-}
-
-// Usage
-const accountMonitor = new ComprehensiveAccountMonitor('your-api-key');
-accountMonitor.connect();
-```
-
 <CardGroup cols={2}>
   <Card
-    title="WebSocket Overview"
-    icon="globe"
-    href="/websockets/overview"
+    title="Order Updates"
+    icon="list-check"
+    href="/reference/websockets/account-updates/orders"
   >
-    Introduction to WebSocket APIs
+    Real-time order status changes and fills
   </Card>
   <Card
-    title="Market Data Streams"
-    icon="chart-line"
-    href="/websockets/market-data"
+    title="Balance Updates"
+    icon="wallet"
+    href="/reference/websockets/account-updates/balance"
   >
-    Real-time market data feeds
+    Account balance changes from trades and transfers
+  </Card>
+  <Card
+    title="Position Updates"
+    icon="chart-area"
+    href="/reference/websockets/account-updates/positions"
+  >
+    Position changes and profit/loss updates
+  </Card>
+  <Card
+    title="Account Notifications"
+    icon="bell"
+    href="/reference/websockets/account-updates/notifications"
+  >
+    Account-level alerts and status updates
   </Card>
 </CardGroup>
+
+## Stream Types Overview
+
+| Channel | Description | Auto-Enabled | Authentication |
+|---------|-------------|--------------|----------------|
+| `orders` | Order status changes and fills | ✅ Yes | Required |
+| `balance` | Account balance updates | ✅ Yes | Required |
+| `positions` | Position changes and PnL | ✅ Yes | Required |
+| `account` | Account-level notifications | ✅ Yes | Required |
+
+## Quick Start
+
+### Authenticated Connection Setup
+```javascript
+const timestamp = Date.now().toString();
+const signature = generateHMACSignature(apiSecret, timestamp);
+
+const ws = new WebSocket('wss://ws.roxom.com/ws', [], {
+  headers: {
+    'X-API-KEY': 'your-api-key',
+    'X-API-TIMESTAMP': timestamp,
+    'X-API-SIGN': signature
+  }
+});
+
+ws.onopen = () => {
+  console.log('Connected to account streams');
+  // Private streams are automatically enabled
+};
+
+ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+  
+  switch (data.type) {
+    case 'order':
+      handleOrderUpdate(data.data);
+        break;
+    case 'balance':
+      handleBalanceUpdate(data.data);
+        break;
+    case 'position':
+      handlePositionUpdate(data.data);
+        break;
+    case 'account':
+      handleAccountNotification(data.data);
+        break;
+  }
+};
+```
+
+### HMAC Signature Generation
+```javascript
+function generateHMACSignature(secret, timestamp) {
+  const crypto = require('crypto');
+  return crypto
+    .createHmac('sha256', secret)
+    .update(timestamp)
+    .digest('base64');
+}
+```
+
+## Message Format
+
+All account update messages follow a consistent structure:
+
+```json
+{
+  "type": "order|balance|position|account",
+  "data": {
+    "accountId": "01234567-89ab-7def-8123-456789abcdef",
+    // Type-specific data fields
+    "timestamp": 1640995200000000000
+  }
+}
+```
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Order Management Systems">
+    Monitor order fills, cancellations, and rejections in real-time to maintain accurate order state and trigger appropriate business logic.
+  </Accordion>
+
+  <Accordion title="Risk Management">
+    Track position changes and unrealized P&L to implement stop-loss mechanisms and position size limits.
+  </Accordion>
+
+  <Accordion title="Portfolio Monitoring">
+    Real-time balance updates enable dynamic portfolio rebalancing and cash management strategies.
+  </Accordion>
+
+  <Accordion title="Algorithmic Trading">
+    Use order and position updates to trigger next steps in multi-leg trading strategies and complex order workflows.
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+<AccordionGroup>
+  <Accordion title="Authentication Failed">
+    **Cause**: Invalid API credentials or signature
+    
+    **Solution**: 
+    - Verify API key is correct and active
+    - Ensure timestamp is current (within 30 seconds)
+    - Check HMAC signature generation
+  </Accordion>
+
+  <Accordion title="Connection Timeout">
+    **Cause**: Network or server connectivity issues
+    
+    **Solution**:
+    - Implement reconnection logic with exponential backoff
+    - Monitor connection health with heartbeat
+    - Handle reconnection state recovery
+  </Accordion>
+
+  <Accordion title="Rate Limiting">
+    **Cause**: Too many connection attempts
+    
+    **Solution**:
+    - Use single connection per application
+    - Implement connection pooling
+    - Add delays between reconnection attempts
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="State Management">
+    - Maintain local copies of order and position state
+    - Handle message ordering and potential duplicates
+    - Implement proper state reconciliation on reconnection
+    - Use message timestamps for event sequencing
+  </Accordion>
+
+  <Accordion title="Performance Optimization">
+    - Process updates asynchronously to avoid blocking
+    - Batch UI updates for high-frequency streams
+    - Implement efficient data structures for tracking
+    - Monitor memory usage for long-running connections
+  </Accordion>
+
+  <Accordion title="Reliability">
+    - Implement comprehensive error handling
+    - Log all account events for audit trails
+    - Use heartbeat monitoring for connection health
+    - Plan for graceful degradation during outages
+  </Accordion>
+</AccordionGroup>
+
+## Authentication Requirements
+
+To access private account streams, you need:
+
+1. **Valid API Credentials**: Active API key with appropriate permissions
+2. **Proper Signature**: HMAC-SHA256 signature of the timestamp
+3. **Current Timestamp**: Within 30 seconds of server time
+4. **Correct Headers**: All required authentication headers included
+
+See the [Authentication Guide](/reference/authentication) for detailed setup instructions.
+
+## Next Steps
+
+- Set up [Connection Authentication](/reference/websockets/connection/authentication) for private streams
+- Learn about specific [Order Update](/reference/websockets/account-updates/orders) message formats
+- Explore [Balance Update](/reference/websockets/account-updates/balance) tracking strategies
+- Review [Position Update](/reference/websockets/account-updates/positions) monitoring techniques

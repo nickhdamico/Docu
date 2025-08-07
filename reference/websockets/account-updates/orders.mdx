@@ -1,0 +1,636 @@
+---
+title: "Order Updates"
+description: "Real-time order status changes and fills"
+---
+
+## Overview
+
+Order update streams provide real-time notifications for all order-related events including submissions, fills, cancellations, and rejections. These updates are essential for maintaining accurate order state and implementing trading algorithms.
+
+<Warning>
+Order update streams require authentication and are automatically enabled when you connect with valid API credentials.
+</Warning>
+
+## Update Format
+
+<ResponseExample>
+```json Order Update
+{
+  "type": "order",
+  "data": {
+    "orderId": "01234567-89ab-7def-8123-456789abcdea",
+    "accountId": "01234567-89ab-7def-8123-456789abcdef", 
+    "symbol": "SP500-BTC",
+    "status": "filled",
+    "remainingQty": "0.000",
+    "executedQty": "0.001", 
+    "avgPx": "50000.00",
+    "timestamp": 1640995200000000000
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="data" type="object">
+  Order update details
+
+  <Expandable title="Order update properties">
+    <ResponseField name="orderId" type="string">
+      Unique order identifier
+    </ResponseField>
+    
+    <ResponseField name="accountId" type="string">
+      Account identifier this order belongs to
+    </ResponseField>
+    
+    <ResponseField name="symbol" type="string">
+      Trading pair for this order
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Current order status (see status values below)
+    </ResponseField>
+    
+    <ResponseField name="remainingQty" type="string">
+      Remaining quantity to be filled
+    </ResponseField>
+    
+    <ResponseField name="executedQty" type="string">
+      Total quantity that has been executed
+    </ResponseField>
+    
+    <ResponseField name="avgPx" type="string">
+      Average execution price for filled quantity
+    </ResponseField>
+    
+    <ResponseField name="timestamp" type="integer">
+      Update timestamp in nanoseconds
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Order Status Values
+
+<AccordionGroup>
+  <Accordion title="Active Statuses">
+    **pendingsubmit**: Order created but not yet submitted to matching engine
+    
+    **waitingtrigger**: Order waiting for trigger condition (stop/take profit orders)
+    
+    **submitted**: Order submitted to matching engine and waiting for execution
+  </Accordion>
+
+  <Accordion title="Execution Statuses">
+    **partiallyfilled**: Order partially executed, remainder still active
+    
+    **filled**: Order completely executed
+    
+    **partiallyfilledcancelled**: Order partially filled then cancelled
+  </Accordion>
+
+  <Accordion title="Final Statuses">
+    **cancelled**: Order cancelled by user or system
+    
+    **rejected**: Order rejected (insufficient balance, invalid parameters, etc.)
+    
+    **inactive**: Order is inactive due to account restrictions
+    
+    **pendingcancel**: Order cancellation requested but not yet confirmed
+  </Accordion>
+</AccordionGroup>
+
+## Implementation Examples
+
+### JavaScript Order Manager
+
+```javascript
+class OrderManager {
+  constructor(apiKey, apiSecret) {
+    this.apiKey = apiKey;
+    this.apiSecret = apiSecret;
+    this.orders = new Map(); // orderId -> order data
+    this.ordersBySymbol = new Map(); // symbol -> Set of orderIds
+    this.ws = null;
+    this.listeners = [];
+  }
+
+  connect() {
+    const timestamp = Date.now().toString();
+    const signature = this.generateSignature(timestamp);
+
+    this.ws = new WebSocket('wss://ws.roxom.com/ws', [], {
+      headers: {
+        'X-API-KEY': this.apiKey,
+        'X-API-TIMESTAMP': timestamp,
+        'X-API-SIGN': signature
+      }
+    });
+
+    this.ws.onopen = () => {
+      console.log('🔐 Connected to order updates stream');
+    };
+
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'order') {
+        this.handleOrderUpdate(data.data);
+      }
+    };
+
+    this.ws.onclose = () => {
+      console.log('❌ Order stream disconnected');
+      this.reconnect();
+    };
+  }
+
+  generateSignature(timestamp) {
+    const crypto = require('crypto');
+    return crypto
+      .createHmac('sha256', this.apiSecret)
+      .update(timestamp)
+      .digest('base64');
+  }
+
+  handleOrderUpdate(orderData) {
+    const orderId = orderData.orderId;
+    const status = orderData.status;
+    const symbol = orderData.symbol;
+
+    // Update order tracking
+    this.updateOrderTracking(orderData);
+
+    console.log(`📋 Order Update: ${orderId} (${symbol}) -> ${status}`);
+
+    // Handle different order statuses
+    switch (status) {
+      case 'submitted':
+        this.onOrderSubmitted(orderData);
+        break;
+      case 'partiallyfilled':
+        this.onOrderPartiallyFilled(orderData);
+        break;
+      case 'filled':
+        this.onOrderFilled(orderData);
+        break;
+      case 'cancelled':
+        this.onOrderCancelled(orderData);
+        break;
+      case 'rejected':
+        this.onOrderRejected(orderData);
+        break;
+    }
+
+    // Notify listeners
+    this.notifyListeners('orderUpdate', orderData);
+  }
+
+  updateOrderTracking(orderData) {
+    const orderId = orderData.orderId;
+    const symbol = orderData.symbol;
+
+    // Update main order record
+    this.orders.set(orderId, {
+      ...this.orders.get(orderId),
+      ...orderData,
+      lastUpdated: Date.now()
+    });
+
+    // Update symbol-based index
+    if (!this.ordersBySymbol.has(symbol)) {
+      this.ordersBySymbol.set(symbol, new Set());
+    }
+    this.ordersBySymbol.get(symbol).add(orderId);
+
+    // Remove from tracking if order is final
+    if (this.isFinalStatus(orderData.status)) {
+      this.cleanupOrder(orderId, symbol);
+    }
+  }
+
+  isFinalStatus(status) {
+    return ['filled', 'cancelled', 'rejected', 'partiallyfilledcancelled'].includes(status);
+  }
+
+  cleanupOrder(orderId, symbol) {
+    // Keep order data but mark as completed
+    const order = this.orders.get(orderId);
+    if (order) {
+      order.isCompleted = true;
+      order.completedAt = Date.now();
+    }
+
+    // Remove from active symbol tracking
+    const symbolOrders = this.ordersBySymbol.get(symbol);
+    if (symbolOrders) {
+      symbolOrders.delete(orderId);
+      if (symbolOrders.size === 0) {
+        this.ordersBySymbol.delete(symbol);
+      }
+    }
+  }
+
+  onOrderSubmitted(order) {
+    console.log(`✅ Order ${order.orderId} submitted to market`);
+    this.updateOrderUI(order.orderId, 'pending');
+    
+    // Track submission metrics
+    this.trackMetric('orderSubmitted', order);
+  }
+
+  onOrderPartiallyFilled(order) {
+    const fillPercent = this.calculateFillPercent(order);
+    const fillAmount = parseFloat(order.executedQty);
+    const avgPrice = parseFloat(order.avgPx);
+    
+    console.log(`🟡 Order ${order.orderId} ${fillPercent.toFixed(1)}% filled - ${fillAmount} at avg price ${avgPrice}`);
+    
+    this.updateOrderUI(order.orderId, 'partial', fillPercent);
+    this.trackMetric('orderPartialFill', order);
+    
+    // Calculate unrealized value
+    const filledValue = fillAmount * avgPrice;
+    console.log(`💰 Filled value: $${filledValue.toFixed(2)}`);
+  }
+
+  onOrderFilled(order) {
+    const totalFilled = parseFloat(order.executedQty);
+    const avgPrice = parseFloat(order.avgPx);
+    const totalValue = totalFilled * avgPrice;
+    
+    console.log(`🟢 Order ${order.orderId} completely filled - ${totalFilled} at avg price ${avgPrice} (Total: $${totalValue.toFixed(2)})`);
+    
+    this.updateOrderUI(order.orderId, 'filled');
+    this.trackMetric('orderFilled', order);
+    
+    // Trigger post-fill logic
+    this.onTradingComplete(order);
+  }
+
+  onOrderCancelled(order) {
+    const remainingQty = parseFloat(order.remainingQty);
+    
+    console.log(`🔴 Order ${order.orderId} cancelled - ${remainingQty} remaining`);
+    
+    this.updateOrderUI(order.orderId, 'cancelled');
+    this.trackMetric('orderCancelled', order);
+  }
+
+  onOrderRejected(order) {
+    console.log(`❌ Order ${order.orderId} rejected`);
+    
+    this.updateOrderUI(order.orderId, 'rejected');
+    this.trackMetric('orderRejected', order);
+    
+    // Handle rejection analysis
+    this.analyzeRejection(order);
+  }
+
+  calculateFillPercent(order) {
+    const executed = parseFloat(order.executedQty);
+    const remaining = parseFloat(order.remainingQty);
+    const total = executed + remaining;
+    
+    return total > 0 ? (executed / total) * 100 : 0;
+  }
+
+  updateOrderUI(orderId, status, progress = null) {
+    // Update DOM elements if available
+    const element = document.getElementById(`order-${orderId}`);
+    if (element) {
+      element.className = `order-status-${status}`;
+      
+      if (progress !== null) {
+        const progressBar = element.querySelector('.progress-bar');
+        if (progressBar) {
+          progressBar.style.width = `${progress}%`;
+        }
+      }
+      
+      const statusElement = element.querySelector('.status');
+      if (statusElement) {
+        statusElement.textContent = status.toUpperCase();
+      }
+    }
+  }
+
+  onTradingComplete(order) {
+    console.log(`🎯 Trade completed: ${order.executedQty} ${order.symbol} at ${order.avgPx}`);
+    
+    // Trigger post-trade workflows
+    this.notifyListeners('tradeCompleted', order);
+    
+    // Could trigger:
+    // - Portfolio rebalancing
+    // - Risk management checks  
+    // - Profit/loss calculations
+    // - Next order in strategy sequence
+    // - Notification systems
+  }
+
+  analyzeRejection(order) {
+    console.log(`🔍 Analyzing rejection for order ${order.orderId}`);
+    
+    // Common rejection analysis
+    // - Check account balance
+    // - Validate order parameters
+    // - Check market hours
+    // - Verify symbol availability
+    
+    this.notifyListeners('orderRejected', order);
+  }
+
+  trackMetric(eventType, order) {
+    // Implement metrics tracking
+    const metric = {
+      timestamp: Date.now(),
+      event: eventType,
+      orderId: order.orderId,
+      symbol: order.symbol,
+      status: order.status
+    };
+    
+    // Send to analytics system
+    this.sendMetric(metric);
+  }
+
+  // Query methods
+  getOrder(orderId) {
+    return this.orders.get(orderId);
+  }
+
+  getOrdersBySymbol(symbol) {
+    const orderIds = this.ordersBySymbol.get(symbol) || new Set();
+    return Array.from(orderIds).map(id => this.orders.get(id)).filter(Boolean);
+  }
+
+  getActiveOrders() {
+    return Array.from(this.orders.values()).filter(order => 
+      !order.isCompleted && 
+      ['submitted', 'partiallyfilled', 'pendingsubmit'].includes(order.status)
+    );
+  }
+
+  getCompletedOrders(limit = 100) {
+    return Array.from(this.orders.values())
+      .filter(order => order.isCompleted)
+      .sort((a, b) => b.completedAt - a.completedAt)
+      .slice(0, limit);
+  }
+
+  // Event management
+  addListener(callback) {
+    this.listeners.push(callback);
+  }
+
+  notifyListeners(eventType, data) {
+    this.listeners.forEach(callback => {
+      try {
+        callback(eventType, data);
+      } catch (error) {
+        console.error('Listener error:', error);
+      }
+    });
+  }
+
+  reconnect() {
+    setTimeout(() => {
+      console.log('🔄 Reconnecting to order stream...');
+      this.connect();
+    }, 5000);
+  }
+
+  sendMetric(metric) {
+    // Implement metric sending logic
+    console.log('📊 Metric:', metric);
+  }
+}
+
+// Usage
+const orderManager = new OrderManager(
+  process.env.ROXOM_API_KEY,
+  process.env.ROXOM_API_SECRET
+);
+
+// Add event listeners
+orderManager.addListener((eventType, data) => {
+  switch (eventType) {
+    case 'orderUpdate':
+      console.log(`Order ${data.orderId} updated: ${data.status}`);
+      break;
+    case 'tradeCompleted':
+      console.log(`Trade completed: ${data.symbol} ${data.executedQty} @ ${data.avgPx}`);
+      break;
+    case 'orderRejected':
+      console.log(`Order rejected: ${data.orderId}`);
+      // Implement rejection handling logic
+      break;
+  }
+});
+
+orderManager.connect();
+```
+
+## Order Lifecycle Tracking
+
+Track complete order lifecycle with state transitions:
+
+```javascript
+class OrderLifecycleTracker {
+  constructor() {
+    this.lifecycles = new Map(); // orderId -> lifecycle events
+  }
+
+  trackOrderEvent(orderData) {
+    const orderId = orderData.orderId;
+    
+    if (!this.lifecycles.has(orderId)) {
+      this.lifecycles.set(orderId, {
+        orderId,
+        symbol: orderData.symbol,
+        events: [],
+        startTime: Date.now(),
+        endTime: null,
+        totalDuration: null
+      });
+    }
+
+    const lifecycle = this.lifecycles.get(orderId);
+    
+    // Add event to lifecycle
+    lifecycle.events.push({
+      status: orderData.status,
+      timestamp: orderData.timestamp,
+      executedQty: orderData.executedQty,
+      remainingQty: orderData.remainingQty,
+      avgPx: orderData.avgPx,
+      recordedAt: Date.now()
+    });
+
+    // Mark completion if final status
+    if (this.isFinalStatus(orderData.status)) {
+      lifecycle.endTime = Date.now();
+      lifecycle.totalDuration = lifecycle.endTime - lifecycle.startTime;
+      
+      this.analyzeLifecycle(lifecycle);
+    }
+  }
+
+  analyzeLifecycle(lifecycle) {
+    const events = lifecycle.events;
+    const duration = lifecycle.totalDuration;
+    
+    console.log(`📈 Order Lifecycle Analysis - ${lifecycle.orderId}:`);
+    console.log(`  Duration: ${duration}ms`);
+    console.log(`  Events: ${events.length}`);
+    console.log(`  Final Status: ${events[events.length - 1].status}`);
+    
+    // Calculate time to first fill
+    const firstFill = events.find(e => e.status === 'partiallyfilled' || e.status === 'filled');
+    if (firstFill) {
+      const timeToFill = firstFill.recordedAt - lifecycle.startTime;
+      console.log(`  Time to First Fill: ${timeToFill}ms`);
+    }
+    
+    // Calculate fill efficiency
+    if (events.some(e => e.status === 'filled')) {
+      const fillEvents = events.filter(e => 
+        e.status === 'partiallyfilled' || e.status === 'filled'
+      );
+      console.log(`  Fill Events: ${fillEvents.length}`);
+    }
+  }
+
+  getLifecycle(orderId) {
+    return this.lifecycles.get(orderId);
+  }
+
+  getAverageExecutionTime() {
+    const completedLifecycles = Array.from(this.lifecycles.values())
+      .filter(lc => lc.totalDuration !== null);
+      
+    if (completedLifecycles.length === 0) return 0;
+    
+    const totalDuration = completedLifecycles.reduce((sum, lc) => sum + lc.totalDuration, 0);
+    return totalDuration / completedLifecycles.length;
+  }
+
+  isFinalStatus(status) {
+    return ['filled', 'cancelled', 'rejected', 'partiallyfilledcancelled'].includes(status);
+  }
+}
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Algorithmic Trading">
+    Use order updates to trigger next steps in complex trading strategies:
+    
+    ```javascript
+    function handleAlgorithmicTrade(orderData) {
+      if (orderData.status === 'filled') {
+        // Order completed, execute next strategy step
+        executeNextStrategyStep(orderData);
+      } else if (orderData.status === 'partiallyfilled') {
+        // Partial fill, may need to adjust remaining order
+        adjustRemainingOrder(orderData);
+      } else if (orderData.status === 'rejected') {
+        // Handle rejection in strategy
+        handleStrategyRejection(orderData);
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Risk Management">
+    Monitor order fills for risk limit enforcement:
+    
+    ```javascript
+    function enforceRiskLimits(orderData) {
+      if (orderData.status === 'filled' || orderData.status === 'partiallyfilled') {
+        const position = calculateNewPosition(orderData);
+        
+        if (exceedsRiskLimits(position)) {
+          console.log('🚨 Risk limit exceeded, reducing position');
+          placeOffsetOrder(orderData);
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Order Management UI">
+    Update trading interface with real-time order status:
+    
+    ```javascript
+    function updateOrderUI(orderData) {
+      const row = document.getElementById(`order-${orderData.orderId}`);
+      if (row) {
+        row.querySelector('.status').textContent = orderData.status;
+        row.querySelector('.filled').textContent = orderData.executedQty;
+        row.querySelector('.remaining').textContent = orderData.remainingQty;
+        
+        if (orderData.avgPx) {
+          row.querySelector('.avg-price').textContent = orderData.avgPx;
+        }
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+<AccordionGroup>
+  <Accordion title="Connection Loss">
+    Handle reconnection and state synchronization:
+    
+    ```javascript
+    class RobustOrderManager extends OrderManager {
+      onReconnected() {
+        // Refresh order state after reconnection
+        this.requestOrderSummary();
+      }
+      
+      async requestOrderSummary() {
+        try {
+          const response = await fetch('/api/orders/active', {
+            headers: { 'Authorization': `Bearer ${this.apiKey}` }
+          });
+          const orders = await response.json();
+          
+          // Sync local state with server state
+          this.syncOrderState(orders);
+        } catch (error) {
+          console.error('Failed to sync order state:', error);
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Duplicate Updates">
+    Handle potential duplicate order updates:
+    
+    ```javascript
+    function handleOrderUpdate(orderData) {
+      const lastUpdate = this.getLastUpdate(orderData.orderId);
+      
+      // Check if this is a duplicate update
+      if (lastUpdate && lastUpdate.timestamp >= orderData.timestamp) {
+        console.log('🔄 Ignoring duplicate order update');
+        return;
+      }
+      
+      // Process the update
+      this.processOrderUpdate(orderData);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Learn about [Balance Updates](/reference/websockets/account-updates/balance) for account balance tracking
+- Explore [Position Updates](/reference/websockets/account-updates/positions) for position monitoring
+- Review [Connection Authentication](/reference/websockets/connection/authentication) for secure access

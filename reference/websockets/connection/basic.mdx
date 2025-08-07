@@ -1,0 +1,424 @@
+---
+title: "Basic Connection"
+description: "Simple WebSocket connection for public market data"
+---
+
+## Overview
+
+Establish a basic WebSocket connection to access public market data streams. No authentication is required for public data including level 1 quotes, trade executions, order book depth, and ticker information.
+
+## Connection Setup
+
+### JavaScript Example
+
+<CodeGroup>
+```javascript Browser
+const ws = new WebSocket('wss://ws.roxom.com/ws');
+
+ws.onopen = function(event) {
+  console.log('Connected to Roxom WebSocket API');
+  
+  // Subscribe to public market data
+  ws.send(JSON.stringify({
+    op: 'subscribe',
+    args: [
+      { channel: 'level1', symbol: 'SP500-BTC' },
+      { channel: 'trade', symbol: 'GLD-BTC' }
+    ]
+  }));
+};
+
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+
+ws.onclose = function(event) {
+  console.log('Connection closed:', event.code, event.reason);
+};
+
+ws.onerror = function(error) {
+  console.error('WebSocket error:', error);
+};
+```
+
+```javascript Node.js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('wss://ws.roxom.com/ws');
+
+ws.on('open', function() {
+  console.log('Connected to Roxom WebSocket API');
+  
+  // Subscribe to market data
+  ws.send(JSON.stringify({
+    op: 'subscribe',
+    args: [{ channel: 'level1', symbol: 'SP500-BTC' }]
+  }));
+});
+
+ws.on('message', function(data) {
+  const message = JSON.parse(data);
+  console.log('Received:', message);
+});
+
+ws.on('close', function(code, reason) {
+  console.log('Connection closed:', code, reason);
+});
+
+ws.on('error', function(error) {
+  console.error('WebSocket error:', error);
+});
+```
+</CodeGroup>
+
+### Python Example
+
+<CodeGroup>
+```python websocket-client
+import websocket
+import json
+
+def on_message(ws, message):
+    data = json.loads(message)
+    print("Received:", data)
+
+def on_error(ws, error):
+    print("Error:", error)
+
+def on_close(ws, close_status_code, close_msg):
+    print("Connection closed")
+
+def on_open(ws):
+    print("Connected to Roxom WebSocket API")
+    
+    # Subscribe to market data
+    subscribe_msg = {
+        "op": "subscribe",
+        "args": [
+            {"channel": "level1", "symbol": "SP500-BTC"},
+            {"channel": "trade", "symbol": "GLD-BTC"}
+        ]
+    }
+    ws.send(json.dumps(subscribe_msg))
+
+ws = websocket.WebSocketApp("wss://ws.roxom.com/ws",
+                          on_open=on_open,
+                          on_message=on_message,
+                          on_error=on_error,
+                          on_close=on_close)
+
+ws.run_forever()
+```
+
+```python asyncio
+import asyncio
+import websockets
+import json
+
+async def connect():
+    uri = "wss://ws.roxom.com/ws"
+    
+    async with websockets.connect(uri) as websocket:
+        print("Connected to Roxom WebSocket API")
+        
+        # Subscribe to market data
+        subscribe_msg = {
+            "op": "subscribe", 
+            "args": [{"channel": "level1", "symbol": "SP500-BTC"}]
+        }
+        await websocket.send(json.dumps(subscribe_msg))
+        
+        # Listen for messages
+        async for message in websocket:
+            data = json.loads(message)
+            print("Received:", data)
+
+# Run the connection
+asyncio.get_event_loop().run_until_complete(connect())
+```
+</CodeGroup>
+
+### Go Example
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "log"
+    "github.com/gorilla/websocket"
+)
+
+type SubscribeMessage struct {
+    Op   string      `json:"op"`
+    Args []SubArgs   `json:"args"`
+}
+
+type SubArgs struct {
+    Channel string `json:"channel"`
+    Symbol  string `json:"symbol"`
+}
+
+func main() {
+    c, _, err := websocket.DefaultDialer.Dial("wss://ws.roxom.com/ws", nil)
+    if err != nil {
+        log.Fatal("dial:", err)
+    }
+    defer c.Close()
+
+    // Subscribe to market data
+    subMsg := SubscribeMessage{
+        Op: "subscribe",
+        Args: []SubArgs{
+            {Channel: "level1", Symbol: "SP500-BTC"},
+            {Channel: "trade", Symbol: "GLD-BTC"},
+        },
+    }
+    
+    if err := c.WriteJSON(subMsg); err != nil {
+        log.Println("write:", err)
+        return
+    }
+
+    // Read messages
+    for {
+        _, message, err := c.ReadMessage()
+        if err != nil {
+            log.Println("read:", err)
+            return
+        }
+        fmt.Printf("received: %s\n", message)
+    }
+}
+```
+
+## Connection URLs
+
+<CodeGroup>
+```http Production
+wss://ws.roxom.com/ws
+```
+
+```http Sandbox
+wss://ws.roxom.io/ws
+```
+</CodeGroup>
+
+<Warning>
+Production and sandbox environments are separate. Use sandbox for testing and development.
+</Warning>
+
+## Subscription Management
+
+### Subscribe to Channels
+```json
+{
+  "op": "subscribe",
+  "args": [
+    { "channel": "level1", "symbol": "SP500-BTC" },
+    { "channel": "trade", "symbol": "GLD-BTC" },
+    { "channel": "depth", "symbol": "OIL-BTC" }
+  ]
+}
+```
+
+### Unsubscribe from Channels
+```json
+{
+  "op": "unsubscribe",
+  "args": [
+    { "channel": "trade", "symbol": "GLD-BTC" }
+  ]
+}
+```
+
+## Available Public Channels
+
+| Channel | Description | Data Type |
+|---------|-------------|-----------|
+| `level1` | Best bid/ask quotes | Real-time quotes |
+| `trade` | Trade executions | Trade history |
+| `depth` | Order book depth | Market depth |
+| `ticker` | 24hr statistics | Price statistics |
+
+## Error Handling
+
+### Connection Errors
+
+<AccordionGroup>
+  <Accordion title="Network Timeout">
+    **Cause**: Network connectivity issues
+    
+    **Solution**:
+    ```javascript
+    ws.onerror = function(error) {
+      console.log('Connection error, retrying...');
+      setTimeout(() => {
+        connectWebSocket();
+      }, 5000);
+    };
+    ```
+  </Accordion>
+
+  <Accordion title="Invalid URL">
+    **Cause**: Incorrect WebSocket endpoint
+    
+    **Solution**: Verify you're using the correct URL:
+    - Production: `wss://ws.roxom.com/ws`
+    - Sandbox: `wss://ws.roxom.io/ws`
+  </Accordion>
+
+  <Accordion title="Subscription Errors">
+    **Cause**: Invalid channel or symbol names
+    
+    **Solution**: Use exact channel names and supported trading pairs
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Connection Management">
+    - Implement reconnection logic for network interruptions
+    - Monitor connection state with readyState property
+    - Handle all WebSocket events (open, message, close, error)
+  </Accordion>
+
+  <Accordion title="Message Processing">
+    - Parse JSON safely with try-catch blocks
+    - Validate message structure before processing
+    - Handle different message types appropriately
+  </Accordion>
+
+  <Accordion title="Resource Cleanup">
+    - Always close WebSocket connections when done
+    - Clear any intervals or timeouts
+    - Remove event listeners to prevent memory leaks
+  </Accordion>
+</AccordionGroup>
+
+## Complete Example
+
+Here's a complete example with error handling and reconnection:
+
+```javascript
+class RoxomPublicWebSocket {
+  constructor() {
+    this.ws = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 1000;
+  }
+
+  connect() {
+    try {
+      this.ws = new WebSocket('wss://ws.roxom.com/ws');
+      
+      this.ws.onopen = () => {
+        console.log('✅ Connected to Roxom WebSocket');
+        this.reconnectAttempts = 0;
+        this.onConnected();
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          this.handleMessage(data);
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
+      };
+
+      this.ws.onclose = (event) => {
+        console.log('❌ Connection closed:', event.code);
+        this.handleReconnect();
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+    } catch (error) {
+      console.error('Connection error:', error);
+      this.handleReconnect();
+    }
+  }
+
+  onConnected() {
+    // Subscribe to market data streams
+    this.subscribe([
+      { channel: 'level1', symbol: 'SP500-BTC' },
+      { channel: 'trade', symbol: 'GLD-BTC' }
+    ]);
+  }
+
+  subscribe(channels) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        op: 'subscribe',
+        args: channels
+      }));
+    }
+  }
+
+  handleMessage(data) {
+    console.log('Received:', data);
+    
+    // Route messages to appropriate handlers
+    if (data.topic) {
+      const [channel, symbol] = data.topic.split('.');
+      
+      switch (channel) {
+        case 'level1':
+          this.handleLevel1(symbol, data.data);
+          break;
+        case 'trade':
+          this.handleTrade(symbol, data.data);
+          break;
+      }
+    }
+  }
+
+  handleLevel1(symbol, data) {
+    console.log(`${symbol} Level 1: Bid ${data.bid[0]} Ask ${data.ask[0]}`);
+  }
+
+  handleTrade(symbol, data) {
+    console.log(`${symbol} Trade: ${data.takerSide} at ${data.vwap}`);
+  }
+
+  handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+      
+      console.log(`🔄 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      
+      setTimeout(() => {
+        this.connect();
+      }, delay);
+    } else {
+      console.error('❌ Max reconnection attempts reached');
+    }
+  }
+
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  }
+}
+
+// Usage
+const client = new RoxomPublicWebSocket();
+client.connect();
+```
+
+## Next Steps
+
+- Learn about [Authenticated Connections](/reference/websockets/connection/authentication) for private data
+- Explore [Market Data Streams](/reference/websockets/market-data) for detailed channel information
+- Review [Connection Management](/reference/websockets/connection/management) for production reliability
