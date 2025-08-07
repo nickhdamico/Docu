@@ -42,18 +42,16 @@ WebSocket connection management is fundamental to accessing Roxom's real-time da
 
 ## Quick Start
 
-### Connection (authentication required)
+### Connection (API key authentication)
 ```javascript
 const timestamp = Date.now();
 const signature = generateHMACSignature(apiSecret, timestamp.toString());
 
 // Most WebSocket clients don't support custom headers directly; use your env's option if available.
-// For Node/tungstenite-style clients you can set headers as below. For browsers, your server must support token-based auth.
+// For Node/tungstenite-style clients you can set headers as below.
 const ws = new WebSocket('wss://ws.roxom.com/ws', [], {
   headers: {
-    'X-API-Key': apiKey,
-    'X-API-Timestamp': timestamp.toString(),
-    'X-API-Signature': signature
+    'X-API-Key': apiKey
   }
 });
 

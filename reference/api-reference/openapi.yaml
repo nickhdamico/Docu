@@ -17,14 +17,12 @@ info:
     - **Other amounts**: Varies by instrument (typically 2-8 decimal places)
 
 
-    ## Authentication
+  ## Authentication
 
-    All private endpoints MUST be authenticated using HMAC (Hash-based Message Authentication Code) cryptographic signatures. Roxom provides users with an API key pair consisting of:
+  All private endpoints require an API key via the `X-API-Key` header. The server currently validates the API key only. Timestamp and HMAC signature headers are accepted but not enforced yet. HMAC verification is coming soon.
 
 
-    - **API Key (Public Key)**: A public identifier for your account
-
-    - **Private Key (Secret)**: A cryptographic secret that MUST NOT be shared and should be kept secure
+  - **API Key (Public Key)**: A public identifier for your account
 
 
     ### Authentication Process

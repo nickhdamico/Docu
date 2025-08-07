@@ -8,7 +8,7 @@ description: "Real-time account and order updates via WebSocket"
 Receive real-time updates for your account activity through authenticated WebSocket connections. After connecting with valid API credentials, subscribe to the private channels you need.
 
 <Warning>
-  Account update streams require authentication. You must include valid API credentials in your WebSocket connection headers.
+  Account update streams require authentication. Include a valid API key in the WebSocket connection headers (`X-API-Key`). Timestamp/signature headers are not enforced yet.
 </Warning>
 
 ## Available Private Streams

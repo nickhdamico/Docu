@@ -5,7 +5,11 @@ description: "Learn how to authenticate your API requests using API keys"
 
 ## Overview
 
-All Roxom API endpoints require authentication using API keys. You must include your API key in the request headers to access any protected resources.
+All Roxom API endpoints require authentication using API keys. Include your API key in the request headers to access protected resources.
+
+<Note>
+Currently, only the `X-API-Key` header is enforced by the server. Timestamp/signature headers are accepted but not validated yet. HMAC verification is coming soon.
+</Note>
 
 <Warning>
   Keep your API keys secure and never expose them in client-side code or public repositories.
