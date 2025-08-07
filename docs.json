@@ -254,7 +254,7 @@
     }
   },
   "api": {
-    "openapi": "/reference/api-reference/openapi.yaml"
+    "openapi": "reference/api-reference/openapi.yaml"
   },
 
   "contextual": {
