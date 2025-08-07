@@ -17,21 +17,15 @@ info:
     - **Other amounts**: Varies by instrument (typically 2-8 decimal places)
 
 
-  ## Authentication
+    ## Authentication
 
-  All private endpoints require an API key via the `X-API-Key` header. The server currently validates the API key only. Timestamp and HMAC signature headers are accepted but not enforced yet. HMAC verification is coming soon.
+    All private endpoints require an API key via the `X-API-Key` header. The server currently validates the API key only. Timestamp and HMAC signature headers are accepted but not enforced yet. HMAC verification is coming soon.
 
+    Include the following header with private requests:
 
-  - **API Key (Public Key)**: A public identifier for your account
+    `X-API-Key: <your_api_key>`
 
-
-    ### Authentication Process
-
-    Each private endpoint request MUST include the following headers:
-
-    - `X-API-Key`: Your API key (public key)
-
-    **Security Notice**: Never share your private key. Roxom will never ask for your private key.
+    Security Notice: Never share your private key. Roxom will never ask for your private key.
 
 
     ## Base URLs
