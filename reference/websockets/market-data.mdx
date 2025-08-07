@@ -5,7 +5,7 @@ description: "Real-time market data via WebSocket streams"
 
 ## Overview
 
-Access real-time market data through WebSocket streams without authentication. Market data streams provide comprehensive coverage of price movements, trade executions, and order book depth across all supported trading pairs.
+Access real-time market data through WebSocket streams. Authentication headers are required at connection time.
 
 ## Available Streams
 
@@ -48,9 +48,9 @@ Access real-time market data through WebSocket streams without authentication. M
 | Channel | Description | Update Frequency | Authentication | Status |
 |---------|-------------|------------------|----------------|--------|
 | `level1` | Best bid/ask quotes | Real-time | Not required | ✅ Available |
-| `trade` | Trade executions with volume stats | Per trade | Not required | 🚧 Coming Soon |
-| `depth` | Full order book depth | Real-time | Not required | 🚧 Coming Soon |
-| `ticker` | 24hr rolling statistics | Every second | Not required | 🚧 Coming Soon |
+| `trade` | Trade executions with volume stats | Per trade | Required | 🚧 Coming Soon |
+| `depth` | Full order book depth | Real-time | Required | 🚧 Coming Soon |
+| `ticker` | 24hr rolling statistics | On snapshot + updates | Required | 🚧 Coming Soon |
 
 ## Quick Subscribe
 
@@ -68,10 +68,8 @@ Access real-time market data through WebSocket streams without authentication. M
 
 ### JavaScript Implementation
 ```javascript
-const ws = new WebSocket('wss://ws.roxom.com/ws');
-
+const ws = /* create authenticated WS per Connection docs */
 ws.onopen = function() {
-  // Subscribe to level 1 quotes for all symbols
   ws.send(JSON.stringify({
     op: 'subscribe',
     args: [
@@ -85,9 +83,12 @@ ws.onopen = function() {
 ws.onmessage = function(event) {
   const data = JSON.parse(event.data);
   
-  if (data.topic && data.topic.startsWith('level1.')) {
-    const [channel, symbol] = data.topic.split('.');
-    handleLevel1Update(symbol, data.data);
+  if (data.event === 'subscribe') return; // ack
+  if (data.data && data.data.topic && data.data.message_type) {
+    if (data.data.topic.startsWith('level1.')) {
+      const [, symbol] = data.data.topic.split('.');
+      handleLevel1Update(symbol, data.data.data);
+    }
   }
 };
 

@@ -42,33 +42,30 @@ WebSocket connection management is fundamental to accessing Roxom's real-time da
 
 ## Quick Start
 
-### Basic Public Connection
+### Connection (authentication required)
 ```javascript
-const ws = new WebSocket('wss://ws.roxom.com/ws');
+const timestamp = Date.now();
+const signature = generateHMACSignature(apiSecret, timestamp.toString());
 
-ws.onopen = function(event) {
-  console.log('Connected to Roxom WebSocket API');
-};
-
-ws.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  console.log('Received:', data);
-};
-```
-
-### Authenticated Private Connection
-```javascript
-const timestamp = Date.now().toString();
-const signature = generateHMACSignature(apiSecret, timestamp);
-
+// Most WebSocket clients don't support custom headers directly; use your env's option if available.
+// For Node/tungstenite-style clients you can set headers as below. For browsers, your server must support token-based auth.
 const ws = new WebSocket('wss://ws.roxom.com/ws', [], {
   headers: {
-    'X-API-KEY': 'your-api-key',
-    'X-API-TIMESTAMP': timestamp,
-    'X-API-SIGN': signature
+    'X-API-Key': apiKey,
+    'X-API-Timestamp': timestamp.toString(),
+    'X-API-Signature': signature
   }
 });
+
+ws.onopen = () => console.log('Connected');
+ws.onmessage = (event) => console.log('Received:', JSON.parse(event.data));
 ```
+
+The WebSocket server requires API key headers during the handshake:
+
+- `X-API-Key`
+- `X-API-Timestamp` (milliseconds)
+- `X-API-Signature` (HMAC of timestamp)
 
 ## Connection Workflow
 

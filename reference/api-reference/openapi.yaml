@@ -112,6 +112,13 @@ paths:
             default: 20
           description: Number of levels per side
           example: 20
+        - name: unit
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/BtcUnits"
+          description: Units for price values (sats or btc)
+          example: "btc"
       responses:
         "200":
           description: Orderbook snapshot data
@@ -335,13 +342,13 @@ paths:
             $ref: "#/components/schemas/InstrumentType"
           description: Instrument type
           example: "perpetual"
-        - name: units
+        - name: unit
           in: query
           required: false
           schema:
             type: string
             enum: ["sats", "btc"]
-            default: "sats"
+            default: "btc"
           description: Units for the response
           example: "sats"
       responses:
@@ -375,13 +382,13 @@ paths:
             type: string
           description: Order ID
           example: "01234567-89ab-cdef-0123-456789abcdef"
-        - name: units
+        - name: unit
           in: query
           required: false
           schema:
             type: string
             enum: ["sats", "btc"]
-            default: "sats"
+            default: "btc"
           description: Units for the response
           example: "sats"
       responses:
@@ -531,7 +538,7 @@ paths:
           schema:
             type: string
             enum: ["sats", "btc"]
-            default: "sats"
+            default: "btc"
           description: Units for the response
           example: "sats"
       responses:
@@ -677,13 +684,13 @@ paths:
             $ref: "#/components/schemas/InstrumentType"
           description: Instrument type
           example: "perpetual"
-        - name: units
+        - name: unit
           in: query
           required: false
           schema:
             type: string
             enum: ["sats", "btc"]
-            default: "sats"
+            default: "btc"
           description: Units for the response
           example: "sats"
       responses:
@@ -774,7 +781,7 @@ paths:
       operationId: getInsuranceFund
       security: []
       parameters:
-        - name: units
+        - name: unit
           in: query
           required: false
           schema:
@@ -911,6 +918,7 @@ components:
       type: string
       enum:
         - perpetual
+        - btc
       description: Type of financial instrument
       example: "perpetual"
 
@@ -921,7 +929,7 @@ components:
         - btc
       description: BTC denomination unit
       example: "sats"
-      default: "sats"
+      default: "btc"
 
     OrderSide:
       type: string
@@ -1318,32 +1326,39 @@ components:
         data:
           type: object
           properties:
-            symbol:
+            instrumentId:
               type: string
-              example: "OIL-BTC"
-            bids:
-              type: array
-              description: "price and size arrays"
-              items:
-                type: array
-                items:
-                  type: string
-                minItems: 2
-                maxItems: 2
-                example: [ "50000", "100.12" ]
-            asks:
+              description: Instrument ID
+              example: "01963bbe-299e-70b5-8ae1-a914270647ef"
+            buys:
               type: array
               items:
-                type: array
-                description: "price and size arrays"
-                items:
+                type: object
+                properties:
+                  price:
+                    type: string
+                  size:
+                    type: string
+                  total:
+                    type: string
+            sells:
+              type: array
+              items:
+                type: object
+                properties:
+                  price:
+                    type: string
+                  size:
+                    type: string
+                  total:
+                    type: string
+            buySellVersus:
+              type: object
+              properties:
+                buy:
                   type: string
-                minItems: 2
-                maxItems: 2
-                example: [ "51000", "150.01" ]
-            timestamp:
-              type: integer
-              example: 1642678800000
+                sell:
+                  type: string
         error:
           type: boolean
           example: false

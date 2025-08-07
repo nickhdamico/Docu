@@ -5,7 +5,7 @@ description: "Real-time account and order updates via WebSocket"
 
 ## Overview
 
-Receive real-time updates for your account activity through authenticated WebSocket connections. Account streams are automatically enabled when you connect with valid API credentials and provide comprehensive coverage of all account-related events.
+Receive real-time updates for your account activity through authenticated WebSocket connections. After connecting with valid API credentials, subscribe to the private channels you need.
 
 <Warning>
   Account update streams require authentication. You must include valid API credentials in your WebSocket connection headers.
@@ -48,10 +48,10 @@ Receive real-time updates for your account activity through authenticated WebSoc
 
 | Channel | Description | Auto-Enabled | Authentication |
 |---------|-------------|--------------|----------------|
-| `orders` | Order status changes and fills | ✅ Yes | Required |
-| `balance` | Account balance updates | ✅ Yes | Required |
-| `positions` | Position changes and PnL | ✅ Yes | Required |
-| `account` | Account-level notifications | ✅ Yes | Required |
+| `orders` | Order status changes and fills | ❌ No (subscribe) | Required |
+| `balance` | Account balance updates | ❌ No (subscribe) | Required |
+| `positions` | Position changes and PnL | ❌ No (subscribe) | Required |
+| `account` | Account-level notifications | ❌ No (subscribe) | Required |
 
 ## Quick Start
 
@@ -69,27 +69,19 @@ const ws = new WebSocket('wss://ws.roxom.com/ws', [], {
 });
 
 ws.onopen = () => {
-  console.log('Connected to account streams');
-  // Private streams are automatically enabled
+  ws.send(JSON.stringify({
+    op: 'subscribe',
+    args: [ { channel: 'orders' }, { channel: 'positions' }, { channel: 'balance' } ]
+  }));
 };
 
 ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
   
-  switch (data.type) {
-    case 'order':
-      handleOrderUpdate(data.data);
-        break;
-    case 'balance':
-      handleBalanceUpdate(data.data);
-        break;
-    case 'position':
-      handlePositionUpdate(data.data);
-        break;
-    case 'account':
-      handleAccountNotification(data.data);
-        break;
-  }
+  if (data.event === 'subscribe') return; // subscription ack
+  if (data.data && data.data.type === 'order') handleOrderUpdate(data.data);
+  if (data.data && data.data.type === 'position') handlePositionUpdate(data.data);
+  if (data.data && data.data.type === 'balance') handleBalanceUpdate(data.data);
 };
 ```
 
